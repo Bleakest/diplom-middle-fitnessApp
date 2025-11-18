@@ -6,8 +6,8 @@ import {
   MeasurementFields,
   FitnessFields,
   MedicalFields,
-} from "../components/forms";
-import { REGISTRATION_FIELDS } from "../constants/accountFields";
+} from "../../components/forms";
+import { REGISTRATION_FIELDS } from "../../constants/accountFields";
 import { Link } from "react-router";
 
 const { Title } = Typography;
@@ -30,7 +30,7 @@ type FieldType = {
   diet: string;
 };
 
-export const SignUpPage = () => {
+export const Registration = () => {
   const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
     console.log("Success:", values);
   };
@@ -81,7 +81,7 @@ export const SignUpPage = () => {
         </Form.Item>
       </Form>
       <p className="mt-4">
-        Уже есть аккаунт? <Link to="/signIn"> Войти </Link>
+        Уже есть аккаунт? <Link to="/login"> Войти </Link>
       </p>
     </div>
   );
