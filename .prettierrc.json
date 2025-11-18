@@ -1,8 +1,9 @@
 {
+  "printWidth": 90,
   "tabWidth": 2,
+  "useTabs": true,
+  "semi": false,
   "singleQuote": true,
-  "useTabs": false,
-  "trailingComma": "all",
-  "bracketSpacing": true,
-  "endOfLine": "lf"
+  "jsxSingleQuote": true,
+  "trailingComma": "all"
 }
