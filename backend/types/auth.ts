@@ -1,23 +1,22 @@
 export interface RegisterDTO {
-  name: string
-  email?: string
-	phone?: string
-  password: string
-  age?: number
-  weight?: number
-  height?: number
-  waist?: number
-  chest?: number
-  hips?: number
-  arm?: number
-  leg?: number
-  goal?: string
-  restrictions?: string
-  experience?: string
-  diet?: string
-  photoFront?: string
-  photoSide?: string
-  photoBack?: string
+	name: string
+	emailOrPhone: string
+	password: string
+	age?: number
+	weight?: number
+	height?: number
+	waist?: number
+	chest?: number
+	hips?: number
+	arm?: number
+	leg?: number
+	goal?: string
+	restrictions?: string
+	experience?: string
+	diet?: string
+	photoFront?: string
+	photoSide?: string
+	photoBack?: string
 }
 
 export interface LoginDTO {
@@ -40,4 +39,3 @@ export interface UserWithToken {
 	user: PublicUser
 	token: Token
 }
-

@@ -3,22 +3,24 @@ import { hash, compare } from 'bcryptjs'
 import { ApiError } from '../utils/ApiError.js'
 import { LoginDTO, RegisterDTO } from '../types/auth.js'
 import { generateAccessToken, generateRefreshToken } from 'services/token.service.js'
+import { findUserByEmailOrPhone } from 'utils/findUserByContact.js'
 
 // register
 export async function registerUser(data: RegisterDTO) {
-	const exists = await prisma.user.findUnique({
-		where: { email: data.email },
-	})
+	const { user, type } = await findUserByEmailOrPhone(data.emailOrPhone)
 
-	if (exists) {
-		throw ApiError.badRequest('Email уже занят')
+	if (user) {
+		throw ApiError.badRequest('Неверный Email/телефон или пароль')
 	}
 
 	const passwordHash = await hash(data.password, 10)
 
-	const user = await prisma.user.create({
+	const { emailOrPhone, ...rest } = data
+
+	const createdUser = await prisma.user.create({
 		data: {
-			...data,
+			...rest,
+			[type]: emailOrPhone,
 			password: passwordHash,
 		},
 		select: {
@@ -29,15 +31,15 @@ export async function registerUser(data: RegisterDTO) {
 		},
 	})
 
-	const accessToken = generateAccessToken(user.id)
-	const refreshToken = await generateRefreshToken(user.id)
+	const accessToken = generateAccessToken(createdUser.id)
+	const refreshToken = await generateRefreshToken(createdUser.id)
 
 	return {
 		user: {
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			phone: user.phone,
+			id: createdUser.id,
+			name: createdUser.name,
+			email: createdUser.email,
+			phone: createdUser.phone,
 		},
 		token: {
 			accessToken,
@@ -50,17 +52,13 @@ export async function registerUser(data: RegisterDTO) {
 export async function loginUser(data: LoginDTO) {
 	const { emailOrPhone, password } = data
 
-	const isEmail = emailOrPhone.includes('@')
-
-	const user = await prisma.user.findFirst({
-		where: isEmail ? { email: emailOrPhone } : { phone: emailOrPhone },
-	})
+	const { user } = await findUserByEmailOrPhone(emailOrPhone)
 
 	if (!user) {
 		throw ApiError.unauthorized('Неверный Email/телефон или пароль')
 	}
 
-	const isPasswordValid = await compare(password, user?.password || '')
+	const isPasswordValid = await compare(password, user.password)
 
 	if (!isPasswordValid) {
 		throw ApiError.unauthorized('Неверный Email/телефон или пароль')
@@ -73,7 +71,6 @@ export async function loginUser(data: LoginDTO) {
 		user: {
 			id: user.id,
 			name: user.name,
-			age: user.age,
 			email: user.email,
 			phone: user.phone,
 		},
