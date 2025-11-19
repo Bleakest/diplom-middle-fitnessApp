@@ -1,5 +1,5 @@
 import { prisma } from '../prisma.js'
-import { hash } from 'bcryptjs'
+import { hash, compare } from 'bcryptjs'
 import { ApiError } from '../utils/ApiError.js'
 import { LoginDTO, RegisterDTO } from '../types/auth.js'
 import { generateAccessToken, generateRefreshToken } from 'services/token.service.js'
@@ -16,7 +16,7 @@ export async function registerUser(data: RegisterDTO) {
 
 	const passwordHash = await hash(data.password, 10)
 
-	return prisma.user.create({
+	const user = await prisma.user.create({
 		data: {
 			...data,
 			password: passwordHash,
@@ -25,8 +25,25 @@ export async function registerUser(data: RegisterDTO) {
 			id: true,
 			name: true,
 			email: true,
+			phone: true,
 		},
 	})
+
+	const accessToken = generateAccessToken(user.id)
+	const refreshToken = await generateRefreshToken(user.id)
+
+	return {
+		user: {
+			id: user.id,
+			name: user.name,
+			email: user.email,
+			phone: user.phone,
+		},
+		token: {
+			accessToken,
+			refreshToken,
+		},
+	}
 }
 
 // login
@@ -40,6 +57,12 @@ export async function loginUser(data: LoginDTO) {
 	})
 
 	if (!user) {
+		throw ApiError.unauthorized('Неверный Email/телефон или пароль')
+	}
+
+	const isPasswordValid = await compare(password, user?.password || '')
+
+	if (!isPasswordValid) {
 		throw ApiError.unauthorized('Неверный Email/телефон или пароль')
 	}
 
