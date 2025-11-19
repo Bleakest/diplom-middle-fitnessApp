@@ -1,6 +1,7 @@
-export interface SignUpDTO {
+export interface RegisterDTO {
   name: string
-  email: string
+  email?: string
+	phone?: string
   password: string
   age?: number
   weight?: number
@@ -19,19 +20,24 @@ export interface SignUpDTO {
   photoBack?: string
 }
 
-export interface RegisterDTO {
-  name: string
-  email: string
-  password: string
-}
-
 export interface LoginDTO {
 	emailOrPhone: string
 	password: string
 }
 
-export interface PublicUser {
-  id: string
-  name: string
-  email: string
+interface Token {
+	accessToken: string
+	refreshToken: string
 }
+
+export interface PublicUser {
+	id: string
+	name: string
+	email: string | null
+	phone: string | null
+}
+export interface UserWithToken {
+	user: PublicUser
+	token: Token
+}
+
