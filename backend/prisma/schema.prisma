@@ -10,7 +10,8 @@ datasource db {
 model User {
   id           String   @id @default(cuid())
   name         String
-  email        String   @unique
+  email        String?  @unique
+  phone        String?  @unique
   age          Int?
   weight       Float?
   height       Float?
@@ -28,6 +29,8 @@ model User {
   photoBack    String?
   password     String
   createdAt    DateTime @default(now())
+
+  refreshTokens RefreshToken[]
 }
 
 model RefreshToken {
