@@ -2,18 +2,7 @@ import { useState } from 'react'
 import { Card, Pagination, Select } from 'antd'
 import type { FC } from 'react'
 import 'antd/dist/reset.css'
-
-type Report = {
-	id: string
-	date: string
-	weight: number
-	waist: number
-	chest: number
-	hips: number
-	leg: number
-	arm: number
-	photoUrl?: string
-}
+import type { ReportType } from '../../types'
 
 const periodOptions = [
 	{ label: 'Месяц', value: 'month' },
@@ -22,7 +11,7 @@ const periodOptions = [
 	{ label: 'Выбрать интервал', value: 'custom' },
 ]
 
-const reportsMock: Report[] = Array.from({ length: 12 }, (_, index) => ({
+const reportsMock: ReportType[] = Array.from({ length: 12 }, (_, index) => ({
 	id: String(index + 1),
 	date: '15.04.2024',
 	weight: 74,
