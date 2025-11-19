@@ -1,9 +1,9 @@
 const loginSchema = {
 	body: {
 		type: 'object',
-		required: ['email', 'password'],
+		required: ['emailOrPhone', 'password'],
 		properties: {
-			email: { type: 'string', format: 'email' },
+			emailOrPhone: { type: 'string' },
 			password: { type: 'string' },
 		},
 	},
@@ -12,13 +12,20 @@ const loginSchema = {
 		200: {
 			type: 'object',
 			properties: {
-				token: { type: 'string' },
+				token: {
+					type: 'object',
+					properties: {
+						accessToken: { type: 'string' },
+						refreshToken: { type: 'string' },
+					},
+				},
 				user: {
 					type: 'object',
 					properties: {
 						id: { type: 'string' },
 						name: { type: 'string' },
-						email: { type: 'string' },
+						email: { type: ['string', 'null'] },
+						phone: { type: ['string', 'null'] },
 					},
 				},
 			},
