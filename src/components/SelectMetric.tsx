@@ -7,9 +7,9 @@ interface Props {
 }
 
 export const SelectMetric = ({ selectedMetrics, setSelectedMetrics }: Props) => {
-	const checkboxOptions = Object.entries(PROGRESS_METRICS).map(([value, config]) => ({
-		label: config.label,
-		value,
+	const checkboxOptions = PROGRESS_METRICS.map((metric) => ({
+		label: metric.label,
+		value: metric.nameMetric,
 	}))
 
 	return (

@@ -20,15 +20,13 @@ export const Progress = () => {
 		'waist',
 		'hips',
 		'chest',
-		'arms',
+		'arm',
+		'leg',
 	])
 	const { Title } = Typography
-	const metricColors = Object.fromEntries(
-		Object.entries(PROGRESS_METRICS).map(([key, config]) => [key, config.color]),
-	)
 
 	const metricNames = Object.fromEntries(
-		Object.entries(PROGRESS_METRICS).map(([key, config]) => [key, config.label]),
+		PROGRESS_METRICS.map((metric) => [metric.nameMetric, metric.label]),
 	)
 	console.log('period', period)
 	const handlePeriodChange = (e: RadioChangeEvent) => {
@@ -37,15 +35,70 @@ export const Progress = () => {
 
 	//для примера данные пока
 	const data = [
-		{ date: '2024-01-15', weight: 85.2, waist: 77, hips: 93, chest: 98, arms: 31 },
-		{ date: '2024-01-22', weight: 84.7, waist: 76, hips: 92, chest: 97, arms: 30.5 },
-		{ date: '2025-08-29', weight: 83.9, waist: 75, hips: 91, chest: 96, arms: 30 },
-		{ date: '2025-09-05', weight: 83.1, waist: 74, hips: 90, chest: 95, arms: 29.5 },
-		{ date: '2025-10-12', weight: 82.4, waist: 73, hips: 89, chest: 94, arms: 29 },
-		{ date: '2025-11-02', weight: 81.8, waist: 72, hips: 88, chest: 93, arms: 28.5 },
-		{ date: '2025-11-26', weight: 81.2, waist: 71, hips: 87, chest: 92, arms: 28 },
+		{
+			date: '2024-01-22',
+			weight: 84.7,
+			waist: 76,
+			hips: 92,
+			chest: 97,
+			arm: 30.5,
+			leg: 58,
+		},
+		{
+			date: '2024-01-15',
+			weight: 85.2,
+			waist: 77,
+			hips: 93,
+			chest: 98,
+			arm: 31,
+			leg: 58.5,
+		},
+		{
+			date: '2025-08-29',
+			weight: 83.9,
+			waist: 75,
+			hips: 91,
+			chest: 96,
+			arm: 30,
+			leg: 57.5,
+		},
+		{
+			date: '2025-09-05',
+			weight: 83.1,
+			waist: 74,
+			hips: 90,
+			chest: 95,
+			arm: 29.5,
+			leg: 57,
+		},
+		{
+			date: '2025-10-12',
+			weight: 82.4,
+			waist: 73,
+			hips: 89,
+			chest: 94,
+			arm: 29,
+			leg: 56.5,
+		},
+		{
+			date: '2025-11-02',
+			weight: 81.8,
+			waist: 72,
+			hips: 88,
+			chest: 93,
+			arm: 28.5,
+			leg: 56,
+		},
+		{
+			date: '2025-11-26',
+			weight: 81.2,
+			waist: 71,
+			hips: 87,
+			chest: 92,
+			arm: 28,
+			leg: 55.5,
+		},
 	]
-
 	const filteredData = useMemo(() => {
 		if (period === 'all') return data
 
@@ -114,19 +167,15 @@ export const Progress = () => {
 													}}
 												/>
 
-												<Legend
-													formatter={(value) =>
-														metricNames[value as keyof typeof metricNames]
-													}
-												/>
+												<Legend formatter={(value) => metricNames[value]} />
 
-												{Object.keys(PROGRESS_METRICS).map((metric) =>
-													selectedMetrics.includes(metric) ? (
+												{PROGRESS_METRICS.map((metric) =>
+													selectedMetrics.includes(metric.nameMetric) ? (
 														<Bar
-															key={metric}
-															dataKey={metric}
-															fill={metricColors[metric]}
-															name={metric}
+															key={metric.nameMetric}
+															dataKey={metric.nameMetric}
+															fill={metric.color}
+															name={metric.nameMetric}
 															maxBarSize={40}
 														/>
 													) : null,

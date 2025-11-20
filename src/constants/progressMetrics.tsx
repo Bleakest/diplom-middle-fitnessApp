@@ -1,24 +1,54 @@
 import { COMMON_FIELDS } from './accountFields'
 
-export const PROGRESS_METRICS = {
-	weight: {
+export type ProgressMetric = {
+	label: string
+	color: string
+	nameMetric: keyof typeof COMMON_FIELDS
+	min: number
+	max: number
+}
+
+export const PROGRESS_METRICS = [
+	{
 		label: COMMON_FIELDS.weight,
 		color: '#f5222d',
+		nameMetric: 'weight',
+		min: 20,
+		max: 200,
 	},
-	waist: {
+	{
 		label: COMMON_FIELDS.waist,
 		color: '#1890ff',
+		nameMetric: 'waist',
+		min: 40,
+		max: 200,
 	},
-	hips: {
+	{
 		label: COMMON_FIELDS.hips,
 		color: '#52c41a',
+		nameMetric: 'hips',
+		min: 50,
+		max: 200,
 	},
-	chest: {
+	{
 		label: COMMON_FIELDS.chest,
 		color: '#faad14',
+		nameMetric: 'chest',
+		min: 50,
+		max: 200,
 	},
-	arms: {
+	{
 		label: COMMON_FIELDS.arm,
 		color: '#722ed1',
+		nameMetric: 'arm',
+		min: 10,
+		max: 100,
 	},
-} as const
+	{
+		label: COMMON_FIELDS.leg,
+		color: '#722e00',
+		nameMetric: 'leg',
+		min: 20,
+		max: 150,
+	},
+] as const
