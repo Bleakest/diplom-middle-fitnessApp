@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form } from 'antd'
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload'
-import { ImagePreviewModal, InputPanel, MessageList } from './'
+import { ImagePreviewModal, InputPanel, MessageList } from './components'
 import type { MessageType, ChatUploadFile } from '../../../types'
 
 const initialMessages: MessageType[] = [

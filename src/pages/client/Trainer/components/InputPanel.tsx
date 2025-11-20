@@ -3,7 +3,7 @@ import { Form, Input, Button, Tooltip, Upload } from 'antd'
 import { SmileOutlined, PictureOutlined, CloseOutlined } from '@ant-design/icons'
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload'
 import { EmojiPicker } from './EmojiPicker'
-import type { ChatUploadFile } from '../../../types'
+import type { ChatUploadFile } from '../../../../types'
 
 type InputPanelProps = {
 	form: ReturnType<typeof Form.useForm>[0]
