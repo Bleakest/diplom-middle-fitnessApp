@@ -5,3 +5,14 @@ export type FastifyContext = {
   req: FastifyRequest
   reply: FastifyReply
 }
+
+import 'fastify'
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: {
+      id: string
+      role: 'CLIENT' | 'TRAINER'
+    }
+  }
+}

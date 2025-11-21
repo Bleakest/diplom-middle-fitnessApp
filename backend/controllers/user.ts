@@ -1,16 +1,18 @@
 import { prisma } from '../prisma.js'
 import { hash, compare } from 'bcryptjs'
 import { ApiError } from '../utils/ApiError.js'
-import { LoginDTO, RegisterDTO } from '../types/auth.js'
+
 import { generateAccessToken, generateRefreshToken } from 'services/token.service.js'
 import { findUserByEmailOrPhone } from 'utils/findUserByContact.js'
+import { RegisterDTO } from 'validation/zod/auth/register.dto.js'
+import { LoginDTO } from 'validation/zod/auth/login.dto.js'
 
 // register
-export async function registerUser(data: RegisterDTO) {
+export async function registerUser(data: RegisterDTO, role: 'CLIENT' | 'TRAINER') {
 	const { user, type } = await findUserByEmailOrPhone(data.emailOrPhone)
 
 	if (user) {
-		throw ApiError.badRequest('Неверный Email/телефон или пароль')
+		throw ApiError.unauthorized('Неверный Email/телефон или пароль')
 	}
 
 	const passwordHash = await hash(data.password, 10)
@@ -22,12 +24,11 @@ export async function registerUser(data: RegisterDTO) {
 			...rest,
 			[type]: emailOrPhone,
 			password: passwordHash,
+			role,
 		},
 		select: {
 			id: true,
-			name: true,
-			email: true,
-			phone: true,
+			role: true,
 		},
 	})
 
@@ -36,10 +37,7 @@ export async function registerUser(data: RegisterDTO) {
 
 	return {
 		user: {
-			id: createdUser.id,
-			name: createdUser.name,
-			email: createdUser.email,
-			phone: createdUser.phone,
+			role: createdUser.role,
 		},
 		token: {
 			accessToken,
@@ -69,14 +67,18 @@ export async function loginUser(data: LoginDTO) {
 
 	return {
 		user: {
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			phone: user.phone,
+			role: user.role,
 		},
 		token: {
 			accessToken,
 			refreshToken,
 		},
 	}
+}
+
+// logout
+export async function logoutUser(userId: string) {
+	await prisma.refreshToken.deleteMany({
+		where: { userId },
+	})
 }

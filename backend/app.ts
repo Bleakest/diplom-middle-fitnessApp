@@ -1,13 +1,35 @@
 import Fastify from 'fastify'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
+import fastifyCookie from '@fastify/cookie'
+import {
+	jsonSchemaTransform,
+	serializerCompiler,
+	validatorCompiler,
+	ZodTypeProvider,
+} from 'fastify-type-provider-zod'
 
-import { ApiError } from './utils/ApiError.js'
-import type { ApiErrorResponse } from './types/error.js'
+import { errorHandler } from 'middleware/globalErrorHandler.js'
 
 import authRoutes from './routes/auth.routes.js'
 
 const app = Fastify()
+
+app.setValidatorCompiler(validatorCompiler)
+app.setSerializerCompiler(serializerCompiler)
+
+app.withTypeProvider<ZodTypeProvider>()
+
+errorHandler(app)
+
+app.register(fastifyCookie, {
+	secret: process.env.COOKIE_SECRET,
+	parseOptions: {
+		// secure: process.env.NODE_ENV === 'production',
+		httpOnly: true,
+		sameSite: 'lax',
+	},
+})
 
 app.register(fastifySwagger, {
 	openapi: {
@@ -17,6 +39,7 @@ app.register(fastifySwagger, {
 			version: '1.0.0',
 		},
 	},
+	transform: jsonSchemaTransform,
 })
 
 // Документация будет доступна по /docs
@@ -24,25 +47,6 @@ app.register(fastifySwaggerUi, {
 	routePrefix: '/docs',
 })
 
-app.setErrorHandler((error, request, reply) => {
-	if (error instanceof ApiError) {
-		const resp: ApiErrorResponse = {
-			error: error.message,
-			statusCode: error.statusCode,
-		}
-
-		return reply.status(error.statusCode).send(resp)
-	}
-
-	const resp: ApiErrorResponse = {
-		error: 'Внутренняя ошибка сервера',
-		statusCode: 500,
-	}
-
-	console.error(error)
-	return reply.status(500).send(resp)
-})
-
-app.register(authRoutes)
+app.register(authRoutes, { prefix: '/auth' })
 
 export default app
