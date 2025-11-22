@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import type { MessageType } from '../../../../types'
-import { Message } from './'
+import { Message } from '.'
 
 type MessageListProps = {
 	messages: MessageType[]
