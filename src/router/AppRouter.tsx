@@ -47,7 +47,7 @@ export const AppRouter = () => {
 				element={<NutritionPlanTrainer />}
 			/>
 			<Route
-				path='/admin/nutrition/:category/:subcategory/create'
+				path='/admin/nutrition/:category/create'
 				element={<CreateNutritionTrainer />}
 			/>
 			<Route path='/admin/client/:id/add-nutrition' element={<AddNutritionTrainer />} />
