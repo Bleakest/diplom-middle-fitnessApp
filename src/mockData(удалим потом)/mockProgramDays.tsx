@@ -13,22 +13,7 @@ export const mockProgramDays: ProgramDay[] = [
 				type: 'breakfast',
 				name: 'Завтрак',
 				meal_order: 1,
-				items: [
-					{
-						id: 'item_1',
-						meal_id: 'meal_1',
-						item_text: 'яичница из двух яиц',
-						item_order: 1,
-						links: [],
-					},
-					{
-						id: 'item_2',
-						meal_id: 'meal_1',
-						item_text: 'огурец свежий и болгарский перец',
-						item_order: 2,
-						links: [],
-					},
-				],
+				items: ['яичница из двух яиц', 'огурец свежий и болгарский перец'],
 			},
 			{
 				id: 'meal_2',
@@ -36,15 +21,7 @@ export const mockProgramDays: ProgramDay[] = [
 				type: 'lunch',
 				name: 'Обед',
 				meal_order: 2,
-				items: [
-					{
-						id: 'item_3',
-						meal_id: 'meal_2',
-						item_text: 'куриная грудка на гриле',
-						item_order: 1,
-						links: ['https://recipe.example.com/chicken'],
-					},
-				],
+				items: ['куриная грудка на гриле'],
 			},
 		],
 	},
@@ -54,7 +31,22 @@ export const mockProgramDays: ProgramDay[] = [
 		day_title: 'День 2',
 		day_order: 2,
 		meals: [
-			//...
+			{
+				id: 'meal_1',
+				day_id: 'day_1',
+				type: 'breakfast',
+				name: 'Завтрак',
+				meal_order: 1,
+				items: ['яичница из двух яиц', 'огурец свежий и болгарский перец'],
+			},
+			{
+				id: 'meal_2',
+				day_id: 'day_1',
+				type: 'lunch',
+				name: 'Обед',
+				meal_order: 2,
+				items: ['куриная грудка на гриле'],
+			},
 		],
 	},
 ]
