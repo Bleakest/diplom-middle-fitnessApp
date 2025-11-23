@@ -28,13 +28,5 @@ export interface Meal {
 	type: 'breakfast' | 'snack' | 'lunch' | 'dinner'
 	name: string
 	meal_order: number
-	items: MealItem[]
-}
-
-export interface MealItem {
-	id: string
-	meal_id: string
-	item_text: string
-	item_order: number
-	links: string[]
+	items: string[]
 }
