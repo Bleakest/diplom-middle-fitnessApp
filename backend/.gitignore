@@ -35,5 +35,5 @@ dist-ssr
 .env
 
 # файлы мультимедиа
-uploads/
+uploads/photos
 media/
