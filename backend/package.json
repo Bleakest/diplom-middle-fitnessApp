@@ -9,7 +9,11 @@
 		"prisma:generate": "npx prisma generate",
 		"prisma:migrate": "npx prisma migrate dev --name init",
 		"prisma:migrate:name": "npx prisma migrate dev --name",
-		"prisma:migrate:dev": "npx prisma migrate dev"
+		"prisma:migrate:dev": "npx prisma migrate dev",
+		"prisma:seed": "tsx ./prisma/seed.ts"
+	},
+	"prisma": {
+		"seed": "tsx ./prisma/seed.ts"
 	},
 	"dependencies": {
 		"@fastify/cookie": "^11.0.2",
