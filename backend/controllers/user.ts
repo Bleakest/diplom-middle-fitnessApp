@@ -4,12 +4,15 @@ import { ApiError } from '../utils/ApiError.js'
 
 import { generateAccessToken, generateRefreshToken } from 'services/token.service.js'
 import { findUserByEmailOrPhone } from 'utils/findUserByContact.js'
-import { RegisterDTO } from 'validation/zod/auth/register.dto.js'
+import {
+	ClientRegisterDTO,
+	TrainerRegisterDTO,
+} from 'validation/zod/auth/register.dto.js'
 import { LoginDTO } from 'validation/zod/auth/login.dto.js'
 
 // register
 export async function registerUser(
-	data: RegisterDTO,
+	data: ClientRegisterDTO | TrainerRegisterDTO,
 	role: 'CLIENT' | 'TRAINER',
 	filesMap: Record<string, string>,
 ) {
@@ -83,6 +86,16 @@ export async function loginUser(data: LoginDTO) {
 
 // logout
 export async function logoutUser(userId: string) {
+	// Проверяем, есть ли активные refresh токены для этого пользователя
+	const existingTokens = await prisma.refreshToken.findMany({
+		where: { userId },
+	})
+
+	if (existingTokens.length === 0) {
+		throw ApiError.unauthorized('Пользователь не авторизован или уже вышел из аккаунта')
+	}
+
+	// Удаляем все refresh токены пользователя
 	await prisma.refreshToken.deleteMany({
 		where: { userId },
 	})

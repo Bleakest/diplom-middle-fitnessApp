@@ -1,6 +1,7 @@
 import { FastifyRequest } from 'fastify'
 import { verifyAccessToken } from 'services/token.service.js'
 import { ApiError } from 'utils/ApiError.js'
+import { prisma } from '../prisma.js'
 
 export async function authGuard(req: FastifyRequest) {
 	const header = req.headers.authorization
@@ -18,13 +19,24 @@ export async function authGuard(req: FastifyRequest) {
 	try {
 		const payload = verifyAccessToken(token)
 
-		req.user = {
-			id: payload.user.id,
-			role: 'CLIENT' as 'CLIENT' | 'TRAINER', // временное значение, можно получить из БД если нужно
+		// Проверяем, существует ли пользователь с таким ID в БД
+		const user = await prisma.user.findUnique({
+			where: { id: payload.user.id },
+			select: { id: true, role: true },
+		})
+
+		if (!user) {
+			throw ApiError.unauthorized('Пользователь не найден')
 		}
 
+		req.user = {
+			id: user.id,
+			role: user.role,
+		}
 	} catch (err: unknown) {
-		console.error('Ошибка верификации токена:', err)
+		if (err instanceof ApiError) {
+			throw err
+		}
 
 		if (err instanceof Error && err.name === 'TokenExpiredError') {
 			throw ApiError.unauthorized('Токен истёк')

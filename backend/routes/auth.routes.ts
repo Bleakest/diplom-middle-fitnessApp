@@ -34,53 +34,30 @@ export default async function authRoutes(app: FastifyInstance) {
 			])
 			body = uploadResult.body
 			files = uploadResult.files
-		} else {
-			// Для тренера получаем body (JSON или multipart без файлов)
-			if (req.isMultipart()) {
-				const uploadResult = await uploadPhotos(req, [])
-				body = uploadResult.body
-			} else {
-				body = req.body as Record<string, string>
+
+			// Проверка обязательных фотографий для клиента
+			if (!files.photoFront || !files.photoSide || !files.photoBack) {
+				throw ApiError.badRequest(
+					'Необходимо загрузить все три фотографии (спереди, сбоку, сзади)',
+				)
 			}
+		} else {
+			// Для тренера всегда JSON
+			body = req.body as Record<string, string>
 		}
 
 		// Валидация тела запроса в зависимости от роли
 		const bodySchema = getRegisterBodySchema(role)
 
-		console.log('body перед валидацией:', body)
+		const validatedData = bodySchema.parse(body)
+		const user = await registerUser(validatedData, role, files)
 
-		try {
-			const validatedData = bodySchema.parse(body)
-			const user = await registerUser(validatedData, role, files)
-
-			setRefreshCookie(reply, user.token.refreshToken, MAX_AGE_30_DAYS)
-
-			return reply.status(201).send({
-				user: user.user,
-				token: {
-					accessToken: user.token.accessToken,
-				},
-			})
-		} catch (error) {
-			if (error instanceof ZodError) {
-				// Берём первую ошибку Zod
-				const firstError = error.issues[0]
-				throw ApiError.badRequest(firstError?.message || 'Ошибка валидации')
-			}
-			throw error
-		}
-	})
+		// Валидация тела запроса в зависимости от роли
+		const bodySchema = getRegisterBodySchema(role)
 
 	app.post('/login', async (req, reply) => {
-		const body = req.body
-
-		// Валидация через Zod
-		const parsed = loginSchemaZod.body.safeParse(body)
-		if (!parsed.success) {
-			return reply.status(400).send({ error: parsed.error.flatten() })
-		}
-
-		const user = await loginUser(parsed.data)
+		const validatedData = loginSchemaZod.body.parse(req.body)
+		const user = await loginUser(validatedData)
 
 		setRefreshCookie(reply, user.token.refreshToken, MAX_AGE_30_DAYS)
 
