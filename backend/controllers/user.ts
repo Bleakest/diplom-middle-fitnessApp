@@ -157,3 +157,14 @@ export async function getUser(userId: string) {
 
 	return base
 }
+
+// edit profile
+export async function editProfile(
+	userId: string,
+	data: Partial<ClientRegisterDTO & TrainerRegisterDTO>,
+) {
+	return await prisma.user.update({
+		where: { id: userId },
+		data,
+	})
+}

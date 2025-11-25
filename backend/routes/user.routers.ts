@@ -16,4 +16,15 @@ export default async function userRoutes(app: FastifyInstance) {
 			return reply.status(200).send({ user })
 		},
 	)
+
+	app.put(
+		'/me/profile',
+		{ preHandler: [authGuard, hasRole(['CLIENT', 'TRAINER'])] },
+		async (req, reply) => {
+
+			const updatedProfile = await editProfile(req.user.id, req.body)
+
+			return reply.status(200).send({ message: 'Профиль обновлён' })
+		},
+	)
 }
