@@ -9,11 +9,12 @@ import {
 	TrainerRegisterDTO,
 } from 'validation/zod/auth/register.dto.js'
 import { LoginDTO } from 'validation/zod/auth/login.dto.js'
+import { ALL_ROLES, CLIENT, TRAINER } from 'consts/role.js'
 
 // register
 export async function registerUser(
 	data: ClientRegisterDTO | TrainerRegisterDTO,
-	role: 'CLIENT' | 'TRAINER',
+	role: typeof CLIENT | typeof TRAINER,
 	filesMap: Record<string, string>,
 ) {
 	const { user, type } = await findUserByEmailOrPhone(data.emailOrPhone)
@@ -99,4 +100,55 @@ export async function logoutUser(userId: string) {
 	await prisma.refreshToken.deleteMany({
 		where: { userId },
 	})
+}
+
+// get user by id
+export async function getUser(userId: string) {
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: {
+			id: true,
+			name: true,
+			email: true,
+			phone: true,
+			age: true,
+			role: true,
+			photo: true,
+			createdAt: true,
+			updatedAt: true,
+			bio: true,
+			telegram: true,
+			whatsapp: true,
+			instagram: true,
+		},
+	})
+
+	if (!user) throw ApiError.notFound('Пользователь не найден')
+
+	const base = {
+		id: user.id,
+		name: user.name,
+		contact: user.email ?? user.phone,
+		age: user.age,
+		role: user.role,
+		photo: user.photo,
+		createdAt: user.createdAt,
+		updatedAt: user.updatedAt,
+	}
+
+	const trainer = {
+		bio: user.bio,
+		telegram: user.telegram,
+		whatsapp: user.whatsapp,
+		instagram: user.instagram,
+	}
+
+	if (user.role === TRAINER) {
+		return {
+			...base,
+			...trainer,
+		}
+	}
+
+	return base
 }

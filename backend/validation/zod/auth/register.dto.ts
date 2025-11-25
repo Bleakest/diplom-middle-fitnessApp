@@ -1,4 +1,6 @@
 import { Regex } from 'consts/regex.js'
+import type { UserRole } from '@prisma/client'
+import { CLIENT } from 'consts/role.js'
 import { z } from 'zod'
 
 // Базовые обязательные поля для обеих ролей
@@ -66,12 +68,12 @@ const trainerBodySchema = baseSchema.merge(trainerFields)
 
 // Querystring схема для роли
 export const registerQuerySchema = z.object({
-	role: z.enum(['CLIENT', 'TRAINER']).optional().default('CLIENT'),
+	role: z.enum(['CLIENT', 'TRAINER']).optional().default(CLIENT),
 })
 
 // Функция для получения правильной схемы в зависимости от роли
-export function getRegisterBodySchema(role: 'CLIENT' | 'TRAINER') {
-	return role === 'CLIENT' ? clientBodySchema : trainerBodySchema
+export function getRegisterBodySchema(role: UserRole) {
+	return role === CLIENT ? clientBodySchema : trainerBodySchema
 }
 
 export type ClientRegisterDTO = z.infer<typeof clientBodySchema>

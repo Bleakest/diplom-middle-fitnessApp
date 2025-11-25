@@ -16,6 +16,20 @@ export async function authGuard(req: FastifyRequest) {
 		throw ApiError.unauthorized('Токен отсутствует в заголовке')
 	}
 
+	const refreshToken = req.cookies?.refreshToken
+
+	if (!refreshToken) {
+		throw ApiError.unauthorized('Пользователь не авторизован')
+	}
+
+	const tokenInDb = await prisma.refreshToken.findUnique({
+		where: { token: refreshToken },
+	})
+
+	if (!tokenInDb) {
+		throw ApiError.unauthorized('Пользователь не авторизован')
+	}
+
 	try {
 		const payload = verifyAccessToken(token)
 
