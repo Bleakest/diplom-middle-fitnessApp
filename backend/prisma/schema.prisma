@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum UserRole {
   CLIENT
   TRAINER
@@ -27,13 +26,6 @@ model User {
   role      UserRole @default(CLIENT)
 
   // поля client
-  weight       Float?
-  height       Float?
-  waist        Float?
-  chest        Float?
-  hips         Float?
-  arm          Float?
-  leg          Float?
   goal         String?
   restrictions String?
   experience   String?
@@ -48,7 +40,8 @@ model User {
   instagram String?
   bio       String?
 
-  refreshTokens RefreshToken[]
+  refreshTokens   RefreshToken[]
+  progressReports Progress[]
 }
 
 model RefreshToken {
@@ -58,4 +51,38 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
+}
+
+model Progress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime @default(now())
+
+  // Обязательные измерения (по ТЗ)
+  weight Float
+  waist  Float
+  hips   Float
+
+  // Опциональные измерения
+  height Float?
+  chest  Float?
+  arm    Float?
+  leg    Float?
+
+  // Фото отчета
+  photoFront String?
+  photoSide  String?
+  photoBack  String?
+
+  // Комментарий тренера
+  trainerComment String?
+  commentedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+  @@index([userId, createdAt])
 }
