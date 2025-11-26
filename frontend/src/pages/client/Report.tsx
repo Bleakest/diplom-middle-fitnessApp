@@ -1,6 +1,8 @@
 import type { FC } from 'react'
 import 'antd/dist/reset.css'
 import type { ReportType } from '../../types'
+import { Card } from 'antd'
+import Title from 'antd/es/skeleton/Title'
 
 const mockReport: ReportType = {
 	id: '1',
@@ -16,72 +18,58 @@ const mockReport: ReportType = {
 
 export const Report: FC<{ report?: ReportType }> = ({ report = mockReport }) => {
 	return (
-		<div
-			className='min-h-screen flex items-center justify-center p-6'
-			style={{ background: 'var(--bg)' }}
-		>
-			<div
-				className='w-full max-w-3xl rounded-xl shadow'
-				style={{
-					background: 'var(--bg-light)',
-					border: '1px solid var(--border-muted)',
-				}}
-			>
-				<div className='border-b' style={{ borderColor: 'var(--border-muted)' }}>
-					<div className='flex items-center px-8 py-6'>
-						<span className='font-semibold text-xl mr-4' style={{ color: 'var(--text)' }}>
-							Ваш отчет за {report.date}
-						</span>
-					</div>
-				</div>
-				<div className='px-8 pt-8 pb-8 flex flex-col items-center w-full'>
-					<div
-						className='rounded-lg shadow-sm mb-10'
-						style={{
-							background: 'var(--bg)',
-							border: '1px solid var(--border-muted)',
-							padding: '1.5rem 2.5rem',
-							color: 'var(--text)',
-						}}
-					>
-						<div className='grid grid-cols-2 gap-x-8 gap-y-2 text-base'>
-							<div>Вес: {report.weight}</div>
-							<div>Обхват бедер: {report.hips}</div>
-							<div>Обхват талии: {report.waist}</div>
-							<div>Обхват ноги: {report.leg}</div>
-							<div>Обхват груди: {report.chest}</div>
-							<div>Обхват руки: {report.arm}</div>
-						</div>
+		<div className='page-container gradient-bg'>
+			<div className='page-card' style={{ maxWidth: '600px' }}>
+				<Card>
+					<div className='section-header'>
+						<Title level={2} className='section-title'>
+							📄 Отчет за {report.date}
+						</Title>
 					</div>
 
-					<div className='flex justify-center items-center mb-8'>
+					<div className='text-center mb-8'>
 						{report.photoUrl ? (
 							<img
 								src={report.photoUrl}
 								alt='Фото отчета'
-								className='w-32 h-32 object-cover rounded-full border'
-								style={{
-									borderColor: 'var(--border-muted)',
-									background: 'var(--bg-dark)',
-								}}
+								className='w-32 h-32 object-cover rounded-full border-4 border-gray-200 mx-auto'
 							/>
 						) : (
-							<div
-								className='w-32 h-32 flex items-center justify-center rounded-full border'
-								style={{
-									borderColor: 'var(--border-muted)',
-									background: 'var(--bg-dark)',
-									fontSize: '3rem',
-									color: 'var(--text-muted)',
-								}}
-							>
-								<span role='img' aria-label='Нет фото'>
-									🙂
-								</span>
+							<div className='w-32 h-32 flex items-center justify-center rounded-full border-4 border-gray-200 bg-gray-100 mx-auto'>
+								<span className='text-4xl text-gray-400'>📊</span>
 							</div>
 						)}
 					</div>
-				</div>
+
+					<div className='bg-gray-50 rounded-xl p-6 border border-gray-200'>
+						<div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-lg'>
+							<div className='flex justify-between py-2 border-b border-gray-200'>
+								<span className='font-semibold text-gray-700'>Вес:</span>
+								<span className='text-gray-900'>{report.weight} кг</span>
+							</div>
+							<div className='flex justify-between py-2 border-b border-gray-200'>
+								<span className='font-semibold text-gray-700'>Талия:</span>
+								<span className='text-gray-900'>{report.waist} см</span>
+							</div>
+							<div className='flex justify-between py-2 border-b border-gray-200'>
+								<span className='font-semibold text-gray-700'>Грудь:</span>
+								<span className='text-gray-900'>{report.chest} см</span>
+							</div>
+							<div className='flex justify-between py-2 border-b border-gray-200'>
+								<span className='font-semibold text-gray-700'>Бёдра:</span>
+								<span className='text-gray-900'>{report.hips} см</span>
+							</div>
+							<div className='flex justify-between py-2 border-b border-gray-200'>
+								<span className='font-semibold text-gray-700'>Нога:</span>
+								<span className='text-gray-900'>{report.leg} см</span>
+							</div>
+							<div className='flex justify-between py-2'>
+								<span className='font-semibold text-gray-700'>Рука:</span>
+								<span className='text-gray-900'>{report.arm} см</span>
+							</div>
+						</div>
+					</div>
+				</Card>
 			</div>
 		</div>
 	)

@@ -14,9 +14,7 @@ function App() {
 		<ConfigProvider theme={customTheme}>
 			<Layout className='min-h-screen flex flex-col'>
 				<Header role={mockData.role} hasUnreadMessages={mockData.hasUnreadMessages} />
-				<Layout className='pageLayout'>
 					<AppRouter />
-				</Layout>
 			</Layout>
 		</ConfigProvider>
 	)

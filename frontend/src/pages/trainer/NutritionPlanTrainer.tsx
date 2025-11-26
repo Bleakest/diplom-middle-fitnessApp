@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Layout, Typography, Button, Empty, Modal } from 'antd'
+import { Layout, Typography, Button, Empty, Modal, Card } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
 import type { ProgramDay } from '../../types/nutritions'
@@ -10,101 +10,114 @@ import { DayCard } from './components/DayCard'
 const { Title } = Typography
 
 export const NutritionPlanTrainer = () => {
-	const { category, subcategory } = useParams()
-	const [openedDayId, setOpenedDayId] = useState<string | null>(null)
-	const [isDayFormVisible, setIsDayFormVisible] = useState(false)
-	const [editingDay, setEditingDay] = useState<ProgramDay | null>(null)
+  const { category, subcategory } = useParams()
+  const [openedDayId, setOpenedDayId] = useState<string | null>(null)
+  const [isDayFormVisible, setIsDayFormVisible] = useState(false)
+  const [editingDay, setEditingDay] = useState<ProgramDay | null>(null)
 
-	// тут будет запрос за днями программы
-	console.log(category, subcategory)
-	const programDays: ProgramDay[] = mockProgramDays
-		.filter((day) => day.program_id === subcategory)
-		.sort((a, b) => a.day_order - b.day_order)
+  const programDays: ProgramDay[] = mockProgramDays
+    .filter((day) => day.program_id === subcategory)
+    .sort((a, b) => a.day_order - b.day_order)
 
-	const handleAddDay = () => {
-		setEditingDay(null)
-		setIsDayFormVisible(true)
-	}
+  const handleAddDay = () => {
+    setEditingDay(null)
+    setIsDayFormVisible(true)
+  }
 
-	const handleEditDay = (day: ProgramDay, e: React.MouseEvent) => {
-		e.stopPropagation()
-		setEditingDay(day)
-		setIsDayFormVisible(true)
-	}
+  const handleEditDay = (day: ProgramDay, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingDay(day)
+    setIsDayFormVisible(true)
+  }
 
-	const handleDayClick = (dayId: string) => {
-		if (openedDayId === dayId) {
-			setOpenedDayId(null)
-		} else {
-			setOpenedDayId(dayId)
-		}
-	}
+  const handleDayClick = (dayId: string) => {
+    if (openedDayId === dayId) {
+      setOpenedDayId(null)
+    } else {
+      setOpenedDayId(dayId)
+    }
+  }
 
-	const handleDayFormCancel = () => {
-		setIsDayFormVisible(false)
-		setEditingDay(null)
-	}
+  const handleDayFormCancel = () => {
+    setIsDayFormVisible(false)
+    setEditingDay(null)
+  }
 
-	const handleDayFormSubmit = (dayData: ProgramDay) => {
-		// тут будет запрос на сохранение дня
-		//изменения данных в сторе
-		console.log('Сохранение дня:', dayData)
-		setIsDayFormVisible(false)
-		setEditingDay(null)
-	}
+  const handleDayFormSubmit = (dayData: ProgramDay) => {
+    console.log('Сохранение дня:', dayData)
+    setIsDayFormVisible(false)
+    setEditingDay(null)
+  }
 
-	return (
-		<Layout className='min-h-screen'>
-			<Layout.Content className='p-6'>
-				<div className='max-w-4xl mx-auto'>
-					<div className='flex justify-between items-center mb-6'>
-						<Title level={3} className='text-custom m-0'>
-							Программа питания
-						</Title>
-						<Button type='primary' icon={<PlusOutlined />} onClick={handleAddDay}>
-							Добавить день
-						</Button>
-					</div>
+  return (
+    <div className="page-container gradient-bg">
+      <div className="page-card">
+        <div className="section-header">
+          <Title level={2} className="section-title">
+            🍽️ Программа питания
+          </Title>
+        </div>
 
-					{programDays.length > 0 ? (
-						<div className='space-y-3'>
-							{programDays.map((day) => (
-								<DayCard
-									key={day.id}
-									day={day}
-									openedDayId={openedDayId}
-									onDayClick={handleDayClick}
-									onEditDay={handleEditDay}
-								/>
-							))}
-						</div>
-					) : (
-						<Empty
-							description='В этой программе пока нет дней'
-							image={Empty.PRESENTED_IMAGE_SIMPLE}
-						>
-							<Button type='primary' onClick={handleAddDay}>
-								Создать первый день
-							</Button>
-						</Empty>
-					)}
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-lg text-gray-700">
+            Дни программы: <span className="font-semibold">{programDays.length}</span>
+          </div>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={handleAddDay}
+            className="!rounded-lg !h-10"
+          >
+            Добавить день
+          </Button>
+        </div>
 
-					<Modal
-						title={editingDay ? 'Редактирование дня' : 'Добавление нового дня'}
-						open={isDayFormVisible}
-						onCancel={handleDayFormCancel}
-						footer={null}
-						width={800}
-					>
-						<CreateDayForm
-							day={editingDay}
-							onSubmit={handleDayFormSubmit}
-							onCancel={handleDayFormCancel}
-							programDays={programDays}
-						/>
-					</Modal>
-				</div>
-			</Layout.Content>
-		</Layout>
-	)
+        {programDays.length > 0 ? (
+          <div className="space-y-4">
+            {programDays.map((day) => (
+              <Card key={day.id} className="card-hover">
+                <DayCard
+                  day={day}
+                  openedDayId={openedDayId}
+                  onDayClick={handleDayClick}
+                  onEditDay={handleEditDay}
+                />
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="text-center py-12">
+            <Empty
+              description="В этой программе пока нет дней"
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+            >
+              <Button 
+                type="primary" 
+                onClick={handleAddDay}
+                className="!rounded-lg !mt-4"
+              >
+                Создать первый день
+              </Button>
+            </Empty>
+          </Card>
+        )}
+
+        <Modal
+          title={editingDay ? 'Редактирование дня' : 'Добавление нового дня'}
+          open={isDayFormVisible}
+          onCancel={handleDayFormCancel}
+          footer={null}
+          width={800}
+          className="[&_.ant-modal-content]:rounded-xl"
+        >
+          <CreateDayForm
+            day={editingDay}
+            onSubmit={handleDayFormSubmit}
+            onCancel={handleDayFormCancel}
+            programDays={programDays}
+          />
+        </Modal>
+      </div>
+    </div>
+  )
 }

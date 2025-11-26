@@ -1,5 +1,9 @@
 import { Chat } from '../../components/Chat'
 
 export const ChatWithClient = () => {
-	return <Chat role={'trainer'} />
+	return (
+		<div className='page-container gradient-bg'>
+			<Chat role={'trainer'} />{' '}
+		</div>
+	)
 }

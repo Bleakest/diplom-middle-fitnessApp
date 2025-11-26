@@ -95,7 +95,7 @@ export const Chat: React.FC<ChatProps> = ({ role }) => {
 				background: '#fff',
 				border: '2px solid #b1b1b1',
 				borderRadius: 24,
-				height: '90vh',
+				height: '80vh',
 				boxShadow: '0 6px 32px rgba(50,50,90,.1)',
 				padding: '10px',
 				marginTop: '1.5rem',
