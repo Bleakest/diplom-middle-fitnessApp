@@ -76,21 +76,6 @@ async function main() {
 			whatsapp: '+79161111111',
 			instagram: '@alex_fitness_coach',
 			bio: 'Сертифицированный тренер с 10-летним опытом. Специализация: набор массы, функциональный тренинг.',
-			// Схема требует эти поля для всех пользователей - указываем заглушки для тренеров
-			weight: 85.0,
-			height: 185,
-			waist: 80,
-			chest: 105,
-			hips: 95,
-			arm: 40,
-			leg: 60,
-			goal: 'Тренер',
-			restrictions: 'Нет',
-			experience: 'Профессиональный тренер',
-			diet: 'Спортивное питание',
-			photoFront: '/uploads/photos/trainer1-front.jpg',
-			photoSide: '/uploads/photos/trainer1-side.jpg',
-			photoBack: '/uploads/photos/trainer1-back.jpg',
 		},
 	})
 
@@ -107,21 +92,6 @@ async function main() {
 			whatsapp: '+79162222222',
 			instagram: '@elena_fitness',
 			bio: 'Персональный тренер, специалист по йоге и пилатесу. Помогу достичь гармонии тела и духа.',
-			// Схема требует эти поля для всех пользователей - указываем заглушки для тренеров
-			weight: 60.0,
-			height: 170,
-			waist: 65,
-			chest: 88,
-			hips: 92,
-			arm: 30,
-			leg: 52,
-			goal: 'Тренер',
-			restrictions: 'Нет',
-			experience: 'Профессиональный тренер',
-			diet: 'Здоровое питание',
-			photoFront: '/uploads/photos/trainer2-front.jpg',
-			photoSide: '/uploads/photos/trainer2-side.jpg',
-			photoBack: '/uploads/photos/trainer2-back.jpg',
 		},
 	})
 

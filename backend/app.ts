@@ -5,6 +5,7 @@ import fastifyCors from '@fastify/cors'
 import { errorHandler } from 'middleware/globalErrorHandler.js'
 
 import authRoutes from './routes/auth.routes.js'
+import userRoutes from 'routes/user.routers.js'
 
 const app = Fastify()
 
@@ -26,6 +27,9 @@ app.register(fastifyCookie, {
 	},
 })
 
-app.register(authRoutes, { prefix: '/auth' })
+app.register(async (instance) => {
+  instance.register(authRoutes, { prefix: '/auth' })
+  instance.register(userRoutes, { prefix: '/user' })
+}, { prefix: '/api' })
 
 export default app
