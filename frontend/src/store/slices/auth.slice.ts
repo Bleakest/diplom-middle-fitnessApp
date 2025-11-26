@@ -29,6 +29,9 @@ const authSlice = createSlice({
       state.isLoading = action.payload
     },
   },
+  extraReducers: (builder) => {
+    // Можно добавить обработку экшенов из authApi если нужно
+  },
 })
 
 export const { setCredentials, logout, setLoading } = authSlice.actions

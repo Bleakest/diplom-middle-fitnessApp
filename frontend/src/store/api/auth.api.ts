@@ -4,13 +4,16 @@ import type { LoginRequest, RegisterRequest, AuthResponse, ApiError } from '../.
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3000',
-    prepareHeaders: (headers) => {
+    baseUrl: 'http://localhost:3000/api/auth',
+    prepareHeaders: (headers, { endpoint }) => {
       const token = localStorage.getItem('token')
       if (token) {
         headers.set('authorization', `Bearer ${token}`)
       }
-      headers.set('Content-Type', 'application/json')
+      // Для регистрации не устанавливаем Content-Type, чтобы браузер сам установил multipart/form-data
+      if (endpoint !== 'register') {
+        headers.set('Content-Type', 'application/json')
+      }
       return headers
     },
   }),
@@ -25,11 +28,13 @@ export const authApi = createApi({
       invalidatesTags: ['Auth'],
     }),
     
-    register: builder.mutation<AuthResponse, { data: RegisterRequest; role: 'CLIENT' | 'TRAINER' }>({
+    register: builder.mutation<AuthResponse, { data: FormData; role: 'CLIENT' | 'TRAINER' }>({
       query: ({ data, role }) => ({
         url: `/signup?role=${role}`,
         method: 'POST',
         body: data,
+        headers: {
+        },
       }),
       invalidatesTags: ['Auth'],
     }),

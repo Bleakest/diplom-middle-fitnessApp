@@ -1,12 +1,13 @@
-import { Button, Form, Input, Typography, Alert, Spin } from 'antd'
+import { Button, Form, Input, Typography, Alert, Spin, Card } from 'antd'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLoginMutation } from '../../store/api/auth.api'
 import { setCredentials } from '../../store/slices/auth.slice'
 import { useAppDispatch } from '../../store/hooks'
 import { useState } from 'react'
+import { LockOutlined, UserOutlined } from '@ant-design/icons'
 
 export const Login = () => {
-	const { Title } = Typography
+	const { Title, Text } = Typography
 	const navigate = useNavigate()
 	const dispatch = useAppDispatch()
 
@@ -22,9 +23,8 @@ export const Login = () => {
 		try {
 			setFormError(null)
 
-			// Преобразуем в формат бэкенда
 			const loginData = {
-				emailOrPhone: values.login, // ← ТАК ЖЕ КАК В БЭКЕНДЕ!
+				emailOrPhone: values.login,
 				password: values.password,
 			}
 
@@ -34,7 +34,6 @@ export const Login = () => {
 
 			console.log('Login successful:', result)
 
-			// Сохраняем данные авторизации в store
 			dispatch(
 				setCredentials({
 					user: result.user,
@@ -42,101 +41,119 @@ export const Login = () => {
 				}),
 			)
 
-			// Перенаправляем в зависимости от роли
-			if (result.user.role === 'TRAINER' || result.user.role === 'ADMIN') {
+			if (result.user.role === 'TRAINER' || result.user.role === 'TRAINER') {
 				navigate('/admin')
 			} else {
 				navigate('/me')
 			}
 		} catch (err: any) {
 			console.error('Login error:', err)
-			// Обрабатываем разные форматы ошибок от бэкенда
 			const errorMessage =
 				err?.data?.message || err?.data?.error || err?.error || 'Ошибка входа'
 			setFormError(errorMessage)
 		}
 	}
 
-	const onFinishFailed = (errorInfo: any) => {
-		console.log('Failed:', errorInfo)
-	}
-
 	return (
-		<div className='mt-50 border border-gray-300 rounded-lg p-6 max-w-md mx-auto'>
-			<Title level={3}>Вход</Title>
+		<div className='auth-container gradient-bg'>
+			<div className='auth-card'>
+				<div className='text-center mb-8'>
+					<Title level={2} className='!mb-2 !text-gray-800'>
+						Добро пожаловать
+					</Title>
+					<Text type='secondary' className='text-lg'>
+						Войдите в ваш аккаунт
+					</Text>
+				</div>
 
-			{/* Показываем ошибки */}
-			{formError && (
-				<Alert
-					message={formError}
-					type='error'
-					showIcon
-					closable
-					className='mb-4'
-					onClose={() => setFormError(null)}
-				/>
-			)}
+				{formError && (
+					<Alert
+						message={formError}
+						type='error'
+						showIcon
+						closable
+						className='mb-6'
+						onClose={() => setFormError(null)}
+					/>
+				)}
 
-			<Form
-				name='login'
-				onFinish={onFinish}
-				onFinishFailed={onFinishFailed}
-				autoComplete='off'
-				disabled={isLoading}
-			>
-				<Form.Item<FieldType>
+				<Form
 					name='login'
-					rules={[
-						{
-							required: true,
-							message: 'Пожалуйста, введите email или телефон',
-						},
-					]}
+					onFinish={onFinish}
+					autoComplete='off'
+					layout='vertical'
+					disabled={isLoading}
+					size='large'
 				>
-					<Input placeholder='Введите email или телефон' size='large' />
-				</Form.Item>
-
-				<Form.Item<FieldType>
-					name='password'
-					rules={[
-						{
-							required: true,
-							message: 'Пожалуйста, введите пароль',
-						},
-					]}
-				>
-					<Input.Password placeholder='Введите пароль' size='large' />
-				</Form.Item>
-
-				<Form.Item>
-					<Button
-						type='primary'
-						htmlType='submit'
-						block
-						size='large'
-						loading={isLoading}
-						disabled={isLoading}
+					<Form.Item<FieldType>
+						name='login'
+						label='Email или телефон'
+						rules={[
+							{
+								required: true,
+								message: 'Пожалуйста, введите email или телефон',
+							},
+						]}
 					>
-						{isLoading ? <Spin size='small' /> : 'Вход'}
-					</Button>
-				</Form.Item>
-			</Form>
+						<Input
+							placeholder='example@mail.ru или +79161234567'
+							prefix={<UserOutlined className='text-gray-400' />}
+							className='rounded-lg'
+						/>
+					</Form.Item>
 
-			<div className='mt-4 text-center'>
-				<p>
-					Нет аккаунта? <Link to='/signup'>Зарегистрируйтесь</Link>
-				</p>
-				<Link to='/forgot-password'>Восстановить пароль</Link>
-			</div>
+					<Form.Item<FieldType>
+						name='password'
+						label='Пароль'
+						rules={[
+							{
+								required: true,
+								message: 'Пожалуйста, введите пароль',
+							},
+						]}
+					>
+						<Input.Password
+							placeholder='Введите ваш пароль'
+							prefix={<LockOutlined className='text-gray-400' />}
+							className='rounded-lg'
+						/>
+					</Form.Item>
 
-			{/* Демо-подсказка для разработки */}
-			<div className='mt-6 p-4 bg-gray-50 rounded-lg'>
-				<Title level={5} className='!mb-2'>
-					Для тестирования:
-				</Title>
-				<div className='text-sm space-y-1'>
-					<div>Используйте существующие аккаунты в вашей БД</div>
-					<div>Формат: email/телефон + пароль</div>
+					<Form.Item className='!mb-4'>
+						<Button
+							type='primary'
+							htmlType='submit'
+							block
+							size='large'
+							loading={isLoading}
+							className='!rounded-lg !h-12 !text-base font-semibold'
+						>
+							{isLoading ? <Spin size='small' /> : 'Войти'}
+						</Button>
+					</Form.Item>
+
+					<div className='text-center space-y-3'>
+						<div>
+							<Text type='secondary'>Нет аккаунта? </Text>
+							<Link
+								to='/signup'
+								className='!text-primary hover:!text-info font-semibold transition-colors'
+							>
+								Зарегистрируйтесь
+							</Link>
+						</div>
+					</div>
+				</Form>
+
+				{/* Демо-подсказка */}
+				<div className='mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200'>
+					<Text strong className='!text-blue-800 !mb-2 block'>
+						🚀 Для тестирования:
+					</Text>
+					<div className='text-blue-700 text-sm space-y-1'>
+						<div>• Используйте тестовые аккаунты из БД</div>
+						<div>• Формат: email/телефон + пароль 123456</div>
+					</div>
 				</div>
 			</div>
 		</div>
