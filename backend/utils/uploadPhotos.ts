@@ -2,10 +2,10 @@ import { FastifyRequest } from 'fastify'
 import fs from 'fs'
 import path from 'path'
 import { ApiError } from './ApiError.js'
+import { MAX_PHOTO_SIZE } from 'consts/file.js'
 
 const __dirname = path.resolve()
 const UPLOAD_DIR = path.join(__dirname, './uploads/photos')
-const MAX_FILE_SIZE = 500 * 1024 // 500KB
 
 // Создаём директорию для загрузок, если её нет
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -27,7 +27,7 @@ interface UploadResult {
 export async function uploadPhotos(
 	req: FastifyRequest,
 	allowedFileFields: string[] = ['photoFront', 'photoSide', 'photoBack'],
-	maxFileSize: number = MAX_FILE_SIZE,
+	maxFileSize: number = MAX_PHOTO_SIZE,
 ): Promise<UploadResult> {
 	if (!req.isMultipart()) {
 		throw ApiError.badRequest('Ожидается multipart/form-data')
