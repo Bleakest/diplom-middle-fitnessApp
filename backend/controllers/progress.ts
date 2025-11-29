@@ -25,16 +25,19 @@ export async function createProgress(
 		data: {
 			userId,
 			date: reportDate,
+			// Обязательные поля
 			weight: data.weight,
-			height: data.height,
 			waist: data.waist,
-			chest: data.chest,
 			hips: data.hips,
-			arm: data.arm,
-			leg: data.leg,
-			photoFront: filesMap.photoFront,
-			photoSide: filesMap.photoSide,
-			photoBack: filesMap.photoBack,
+			// Опциональные поля
+			...(data.height !== undefined && { height: data.height }),
+			...(data.chest !== undefined && { chest: data.chest }),
+			...(data.arm !== undefined && { arm: data.arm }),
+			...(data.leg !== undefined && { leg: data.leg }),
+			// Фото (опциональные)
+			...(filesMap.photoFront && { photoFront: filesMap.photoFront }),
+			...(filesMap.photoSide && { photoSide: filesMap.photoSide }),
+			...(filesMap.photoBack && { photoBack: filesMap.photoBack }),
 		},
 	})
 
