@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
 import { Form } from 'antd'
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload'
-import { ImagePreviewModal, InputPanel, MessageList } from './components'
 import type { MessageType, ChatUploadFile } from '../../types'
+import { MessageList } from './MessageList'
+import { InputPanel } from './InputPanel'
+import { ImagePreviewModal } from './ImagePreviewModal'
 
 const initialMessages: MessageType[] = [
 	{ id: 1, text: 'Сообщение клиента', createdAt: '19:30', sender: 'client' },

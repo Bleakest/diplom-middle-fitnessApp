@@ -1,6 +1,6 @@
 import React from 'react'
 import clsx from 'clsx'
-import type { MessageType } from '../../../types'
+import type { MessageType } from '../../types'
 
 type MessageProps = {
 	msg: MessageType

@@ -217,4 +217,16 @@ export default async function userRoutes(app: FastifyInstance) {
 			return reply.status(200).send({ progress })
 		},
 	)
+	// Получение ВСЕХ отчетов прогресса пользователя
+app.get(
+  '/progress',
+  { preHandler: [authGuard, hasRole(['CLIENT'])] },
+  async (req, reply) => {
+    const { getAllProgress } = await import('controllers/progress.js')
+    const progress = await getAllProgress(req.user.id)
+    return reply.status(200).send({ progress })
+  }
+)
 }
+
+

@@ -114,3 +114,33 @@ export async function getProgressById(
 
 	return progress
 }
+
+/**
+ * Получает все отчеты о прогрессе пользователя
+ * @param userId - ID пользователя
+ * @returns Список всех отчетов о прогрессе
+ */
+export async function getAllProgress(userId: string) {
+  return await prisma.progress.findMany({
+    where: { userId },
+    orderBy: { date: 'desc' },
+    select: {
+      id: true,
+      date: true,
+      weight: true,
+      height: true,
+      chest: true,
+      waist: true,
+      hips: true,
+      arm: true,
+      leg: true,
+      photoFront: true,
+      photoSide: true,
+      photoBack: true,
+      trainerComment: true,
+      commentedAt: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  })
+}

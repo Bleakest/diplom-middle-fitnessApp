@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Typography, Button, Form, Input, message, Modal } from 'antd'
 import { useParams, useNavigate } from 'react-router-dom'
 import { PlusOutlined } from '@ant-design/icons'
-import { CreateDayForm } from './components/CreateDayForm'
 import type { ProgramDay, NutritionProgram } from '../../types/nutritions'
+import { CreateDayForm } from '../../components/Admin/CreateDayForm'
 
 const { Title } = Typography
 const { TextArea } = Input

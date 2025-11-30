@@ -30,9 +30,6 @@ model User {
   restrictions String?
   experience   String?
   diet         String?
-  photoFront   String?
-  photoSide    String?
-  photoBack    String?
 
   // поля trainer
   telegram  String?

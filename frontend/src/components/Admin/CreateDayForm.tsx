@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Form, Input, Button, Card, Space, Select } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
-import type { ProgramDay, Meal } from '../../../types/nutritions'
-import { mealTypes } from '../../../constants/mealTypes'
+import type { Meal, ProgramDay } from '../../types/nutritions'
+import { mealTypes } from '../../constants/mealTypes'
+
 
 interface CreateDayFormProps {
 	day?: ProgramDay | null

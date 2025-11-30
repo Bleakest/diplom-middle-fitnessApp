@@ -2,7 +2,7 @@
 import React from 'react'
 import { Card, Button, Typography } from 'antd'
 import { EditOutlined, DownOutlined, RightOutlined } from '@ant-design/icons'
-import type { ProgramDay } from '../../../types/nutritions'
+import type { ProgramDay } from '../../types/nutritions'
 
 const { Title } = Typography
 

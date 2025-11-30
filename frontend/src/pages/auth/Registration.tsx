@@ -1,6 +1,6 @@
 import type { FormProps } from 'antd'
 import { Button, Form, Input, Typography, Upload, message } from 'antd'
-import { MeasurementFields, FitnessFields } from '../../components/forms'
+import { MeasurementFields, FitnessFields } from '../../components/Forms'
 import { REGISTRATION_FIELDS } from '../../constants/accountFields'
 import { Link, useNavigate } from 'react-router'
 import { useRegisterMutation } from '../../store/api/auth.api'

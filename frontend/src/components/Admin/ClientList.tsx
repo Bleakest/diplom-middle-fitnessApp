@@ -1,6 +1,6 @@
 import { Card, Avatar, List, Tooltip, Button } from 'antd'
 import { StarFilled, StarOutlined } from '@ant-design/icons'
-import type { ClientInTrainerProfile } from '../../../../types'
+import type { ClientInTrainerProfile } from '../../types'
 
 interface ClientListProps {
 	title: string

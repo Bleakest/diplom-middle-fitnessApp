@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Layout, Button, Typography } from 'antd'
 import { MenuOutlined } from '@ant-design/icons'
-import { ClientList, TrainerInfo, TrainerSidebar } from './components'
-import { mockClients } from './mock-data'
+import { mockClients } from '../../mocks/mock-data'
+import { ClientList, TrainerInfo, TrainerSidebar } from '../../components/Admin'
 
 const { Title } = Typography
 const { Content, Sider } = Layout

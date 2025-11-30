@@ -1,6 +1,6 @@
 import { Button, Card, Empty, Tag } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import type { NutritionCategory, NutritionProgram } from '../../../types/nutritions'
+import type { NutritionCategory, NutritionProgram } from '../../types/nutritions'
 import { DownOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 
 interface NutritionCategoryCardProps {

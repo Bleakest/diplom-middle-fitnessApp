@@ -1,6 +1,6 @@
 import { ConfigProvider, Layout } from 'antd'
 import { AppRouter } from './router/AppRouter'
-import { Header } from './components/Header'
+import { Header } from './components/Common/Header.tsx'
 import type { UserRole } from './components/index.ts'
 import { customTheme } from '../theme-config.ts'
 

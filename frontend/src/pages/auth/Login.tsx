@@ -1,4 +1,4 @@
-import { Button, Form, Input, Typography, Alert, Spin, Card } from 'antd'
+import { Button, Form, Input, Typography, Alert, Spin } from 'antd'
 import { Link, useNavigate } from 'react-router-dom'
 import { useLoginMutation } from '../../store/api/auth.api'
 import { setCredentials } from '../../store/slices/auth.slice'
