@@ -121,7 +121,7 @@ export async function getProgressById(
  * @returns Список всех отчетов о прогрессе
  */
 export async function getAllProgress(userId: string) {
-  return await prisma.progress.findMany({
+  const progress = await prisma.progress.findMany({
     where: { userId },
     orderBy: { date: 'desc' },
     select: {
@@ -143,4 +143,5 @@ export async function getAllProgress(userId: string) {
       updatedAt: true,
     },
   })
+	return progress || []
 }

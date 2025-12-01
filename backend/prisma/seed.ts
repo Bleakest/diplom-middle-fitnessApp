@@ -23,9 +23,6 @@ async function main() {
 			restrictions: 'Нет противопоказаний',
 			experience: 'Занимался год в зале',
 			diet: 'Обычное питание',
-			photoFront: '/uploads/default/body-fitness.jpg',
-			photoSide: '/uploads/default/body-fitness.jpg',
-			photoBack: '/uploads/default/body-fitness.jpg',
 		},
 	})
 
@@ -128,9 +125,6 @@ async function main() {
 			restrictions: 'Проблемы с коленями',
 			experience: 'Новичок в фитнесе',
 			diet: 'Стараюсь правильно питаться',
-			photoFront: '/uploads/default/body-fitness.jpg',
-			photoSide: '/uploads/default/body-fitness.jpg',
-			photoBack: '/uploads/default/body-fitness.jpg',
 		},
 	})
 
