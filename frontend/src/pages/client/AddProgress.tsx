@@ -1,5 +1,5 @@
-import { MeasurementFields } from '../../components/forms'
-import { Form, Layout, Typography, DatePicker, Button, Card } from 'antd'
+import { MeasurementFields } from '../../components/Forms'
+import { Form, Typography, DatePicker, Button, Card } from 'antd'
 
 export const AddProgress = () => {
 	const { Title } = Typography

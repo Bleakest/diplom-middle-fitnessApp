@@ -1,4 +1,4 @@
-import { Button, Card, Layout, Typography } from 'antd'
+import { Button, Card,  Typography } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
 export const Main = () => {

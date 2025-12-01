@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Typography, Button, Empty, message, Card } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { mockCategories } from '../../mockData(удалим потом)/mockNutritionCategories'
-import { NutritionCategoryCard } from './components/NutritionCategoryCard'
-import { ModalForCreateCategory } from './components/ModalForCreateCategory'
+import { mockCategories } from '../../mocks/mockNutritionCategories'
+import { NutritionCategoryCard } from '../../components/Admin/NutritionCategoryCard'
+import { ModalForCreateCategory } from '../../components/Admin/ModalForCreateCategory'
 
 const { Title } = Typography
 

@@ -1,5 +1,5 @@
-import type { ClientInTrainerProfile } from '../../../types'
-import type { Trainer } from '../../../types'
+import type { ClientInTrainerProfile } from '../types'
+import type { Trainer } from '../types'
 
 export const mockTrainer: Trainer = {
 	id: 't1',

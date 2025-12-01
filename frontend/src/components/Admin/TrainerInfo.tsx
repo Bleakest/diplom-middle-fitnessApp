@@ -13,8 +13,8 @@ import {
 import { UploadOutlined } from '@ant-design/icons'
 import { z } from 'zod'
 import { createSchemaFieldRule } from 'antd-zod'
-import { mockTrainer } from '../mock-data'
 import { useNavigate } from 'react-router-dom'
+import { mockTrainer } from '../../mocks/mock-data'
 
 const schema = z.object({
 	name: z.string().min(2, 'Минимум 2 символа'),

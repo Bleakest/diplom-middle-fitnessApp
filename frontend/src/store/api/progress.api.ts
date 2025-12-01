@@ -1,168 +1,110 @@
-// store/api/progress.api.ts
+// store/api/progress.api.ts - ПОЛНОСТЬЮ ИСПРАВЛЕННАЯ ВЕРСИЯ
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { ProgressChartData, ProgressComment, ProgressReport } from '../types/progress.types';
 
-// Моковые данные для страниц /me/progress/reports и /me/progress/reports/:id
-const mockProgressReports: ProgressReport[] = [
-  {
-    id: '1',
-    userId: '1',
-    date: '2024-03-01',
-    measurements: {
-      id: '3',
-      userId: '1',
-      date: '2024-03-01',
-      weight: 75,
-      waistCircumference: 85,
-      chestCircumference: 95,
-      hipCircumference: 100,
-      armCircumference: 35,
-      legCircumference: 55,
-    },
-    photos: [
-      '/progress/march/front.jpg',
-      '/progress/march/side.jpg',
-      '/progress/march/back.jpg'
-    ],
-    notes: 'Хороший прогресс за месяц. Чувствую себя более энергичным, одежда сидит лучше.',
-    comments: [
-      {
-        id: '1',
-        progressEntryId: '1',
-        trainerId: '2',
-        trainerName: 'Петр Тренеров',
-        comment: 'Отличные результаты! Видна значительная разница в объемах. Продолжайте соблюдать план питания.',
-        createdAt: '2024-03-02T10:00:00Z',
-      },
-    ],
-  },
-  {
-    id: '2',
-    userId: '1',
-    date: '2024-02-01',
-    measurements: {
-      id: '2',
-      userId: '1',
-      date: '2024-02-01',
-      weight: 78,
-      waistCircumference: 88,
-      chestCircumference: 98,
-      hipCircumference: 103,
-      armCircumference: 35.5,
-      legCircumference: 57,
-    },
-    photos: [
-      '/progress/february/front.jpg',
-      '/progress/february/side.jpg'
-    ],
-    notes: 'Постепенное улучшение. Стараюсь соблюдать режим.',
-    comments: [
-      {
-        id: '2',
-        progressEntryId: '2',
-        trainerId: '2',
-        trainerName: 'Петр Тренеров',
-        comment: 'Хорошая динамика. Обратите внимание на потребление воды.',
-        createdAt: '2024-02-02T14:30:00Z',
-      },
-    ],
-  },
-  {
-    id: '3',
-    userId: '1',
-    date: '2024-01-01',
-    measurements: {
-      id: '1',
-      userId: '1',
-      date: '2024-01-01',
-      weight: 80,
-      waistCircumference: 90,
-      chestCircumference: 100,
-      hipCircumference: 105,
-      armCircumference: 36,
-      legCircumference: 58,
-    },
-    photos: [
-      '/progress/january/front.jpg',
-      '/progress/january/side.jpg',
-      '/progress/january/back.jpg'
-    ],
-    notes: 'Начальные замеры. Есть над чем работать.',
-    comments: [
-      {
-        id: '3',
-        progressEntryId: '3',
-        trainerId: '2',
-        trainerName: 'Петр Тренеров',
-        comment: 'Отличные начальные данные! Будем работать по составленному плану.',
-        createdAt: '2024-01-02T09:15:00Z',
-      },
-    ],
-  },
-];
+export interface ProgressReport {
+  id: string;
+  date: string;
+  weight: number;
+  height?: number;
+  chest?: number;
+  waist: number;
+  hips: number;
+  arm?: number;
+  leg?: number;
+  photoFront?: string;
+  photoSide?: string;
+  photoBack?: string;
+  trainerComment?: string;
+  commentedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProgressChartData {
+  date: string;
+  weight: number;
+  waist: number;
+  hips: number;
+  chest?: number;
+  arm?: number;
+  leg?: number;
+}
 
 export const progressApi = createApi({
   reducerPath: 'progressApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api/progress',
-    fetchFn: async (...args) => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return fetch(...args);
+    baseUrl: 'http://localhost:3000/api/user',
+    credentials: 'include',
+    prepareHeaders: (headers, { endpoint }) => {
+      // ДОБАВЛЕНО: берем токен из localStorage как в user.api.ts
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      
+      // Для мутации с файлами не устанавливаем Content-Type
+      if (endpoint !== 'addProgressReport') {
+        headers.set('Content-Type', 'application/json');
+      }
+      return headers;
     },
   }),
-  tagTypes: ['Progress', 'ProgressComments'],
+  tagTypes: ['Progress'],
   endpoints: (builder) => ({
-    // Для страницы /me/progress/reports (AllReports)
-    getProgressReports: builder.query<ProgressReport[], string>({
-      query: (userId) => `/${userId}/reports`,
+    // Получение всех отчетов прогресса для графика
+    getProgressChartData: builder.query<ProgressChartData[], void>({
+      query: () => '/progress',
       providesTags: ['Progress'],
+      transformResponse: (response: { progress: ProgressReport[] }) => {
+        // Преобразуем данные для графика
+        return response.progress.map(item => ({
+          date: item.date.split('T')[0], // Берем только дату
+          weight: item.weight,
+          waist: item.waist,
+          hips: item.hips,
+          chest: item.chest || 0,
+          arm: item.arm || 0,
+          leg: item.leg || 0,
+        }));
+      },
     }),
-    
-    // Для страницы /me/progress/reports/:id (Report)
+
+    // Получение всех отчетов с полной информацией
+    getProgressReports: builder.query<ProgressReport[], void>({
+      query: () => '/progress',
+      providesTags: ['Progress'],
+      transformResponse: (response: { progress: ProgressReport[] }) => response.progress,
+    }),
+
+    // Получение конкретного отчета по ID
     getProgressReport: builder.query<ProgressReport, string>({
-      query: (reportId) => `/reports/${reportId}`,
+      query: (id) => `/progress/${id}`,
       providesTags: ['Progress'],
+      transformResponse: (response: { progress: ProgressReport }) => response.progress,
     }),
-    
-    // Для страницы /me/progress/new-report (AddProgress)
-    addProgressReport: builder.mutation<ProgressReport, { 
-      userId: string; 
-      report: Omit<ProgressReport, 'id' | 'comments'> 
-    }>({
-      query: ({ userId, report }) => ({
-        url: `/${userId}/reports`,
-        method: 'POST',
-        body: report,
+
+    // Создание нового отчета
+    addProgressReport: builder.mutation<ProgressReport, FormData>({
+      query: (formData) => ({
+        url: '/progress/new-report',
+        method: 'PUT',
+        body: formData,
       }),
       invalidatesTags: ['Progress'],
     }),
-    
-    // Для добавления комментариев к отчетам
-    addCommentToProgress: builder.mutation<ProgressComment, { 
-      reportId: string; 
-      comment: string;
-      trainerId: string;
-    }>({
-      query: ({ reportId, comment, trainerId }) => ({
-        url: `/reports/${reportId}/comments`,
-        method: 'POST',
-        body: { comment, trainerId },
-      }),
-      invalidatesTags: ['ProgressComments', 'Progress'],
-    }),
-    
-    // Для графиков на странице /me/progress
-    getProgressChartData: builder.query<ProgressChartData[], string>({
-      query: (userId) => `/${userId}/chart-data`,
-      providesTags: ['Progress'],
+
+    // Получение последнего отчета
+    getLatestProgress: builder.query<ProgressReport, void>({
+      query: () => '/progress/latest',
+      transformResponse: (response: { progress: ProgressReport }) => response.progress,
     }),
   }),
 });
 
 export const {
+  useGetProgressChartDataQuery,
   useGetProgressReportsQuery,
   useGetProgressReportQuery,
   useAddProgressReportMutation,
-  useAddCommentToProgressMutation,
-  useGetProgressChartDataQuery,
+  useGetLatestProgressQuery,
 } = progressApi;

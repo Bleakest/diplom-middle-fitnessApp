@@ -37,24 +37,19 @@ export async function registerUser(
 
 	const passwordHash = await hash(data.password, 10)
 
-	const { emailOrPhone, ...rest } = data
-
-	let userProfileData: any = { ...rest }
-
 	// Если клиент - извлекаем измерения для Progress
 	if (role === CLIENT) {
-		const { weight, height, waist, chest, hips, arm, leg, ...clientProfile } =
+		const { emailOrPhone, weight, height, waist, chest, hips, arm, leg, ...clientProfile } =
 			data as ClientRegisterDTO
-		userProfileData = clientProfile
 
-		// Создаем пользователя без измерений
+		// Создаем пользователя БЕЗ фотографий прогресса
 		const createdUser = await prisma.user.create({
 			data: {
 				...clientProfile,
-				[type]: emailOrPhone,
+				// Используем правильное поле в зависимости от типа
+				...(type === 'email' ? { email: emailOrPhone } : { phone: emailOrPhone }),
 				password: passwordHash,
 				role,
-				...filesMap,
 			},
 			select: {
 				id: true,
@@ -62,7 +57,7 @@ export async function registerUser(
 			},
 		})
 
-		// Создаем первый Progress с измерениями
+		// Создаем первый Progress с измерениями И фотографиями
 		await prisma.progress.create({
 			data: {
 				userId: createdUser.id,
@@ -73,6 +68,9 @@ export async function registerUser(
 				chest,
 				arm,
 				leg,
+				photoFront: filesMap.photoFront,
+				photoSide: filesMap.photoSide,
+				photoBack: filesMap.photoBack,
 			},
 		})
 
@@ -91,13 +89,15 @@ export async function registerUser(
 	}
 
 	// Создаем тренера (без измерений и Progress)
+	const { emailOrPhone, ...trainerProfile } = data as TrainerRegisterDTO
+
 	const createdUser = await prisma.user.create({
 		data: {
-			...userProfileData,
-			[type]: emailOrPhone,
+			...trainerProfile,
+			// Используем правильное поле в зависимости от типа
+			...(type === 'email' ? { email: emailOrPhone } : { phone: emailOrPhone }),
 			password: passwordHash,
 			role,
-			...filesMap,
 		},
 		select: {
 			id: true,

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Typography, Button, Select, Card, message } from 'antd'
 import { useParams, useNavigate } from 'react-router-dom'
-import { mockCategories } from '../../mockData(удалим потом)/mockNutritionCategories'
-import { mockProgramDays } from '../../mockData(удалим потом)/mockProgramDays'
+import { mockCategories } from '../../mocks/mockNutritionCategories'
+import { mockProgramDays } from '../../mocks/mockProgramDays'
 import type { NutritionCategory } from '../../types/nutritions'
 import type { ProgramDay } from '../../types/nutritions'
 

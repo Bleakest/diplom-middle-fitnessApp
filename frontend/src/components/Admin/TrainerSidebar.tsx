@@ -1,7 +1,7 @@
 import React from 'react'
 import { List, Avatar, Badge, Tooltip } from 'antd'
 import { StarFilled, StarOutlined } from '@ant-design/icons'
-import { mockTrainer } from '../mock-data'
+import { mockTrainer } from '../../mocks/mock-data'
 
 interface SidebarProps {
 	clients: Array<{

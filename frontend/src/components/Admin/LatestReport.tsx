@@ -1,7 +1,7 @@
 import { Card, Row, Col, Divider, Image } from 'antd'
 import type { ReactNode } from 'react'
 import { Typography } from 'antd'
-import { type ReportType } from '../types'
+import { type ReportType } from '../../types'
 
 const { Text } = Typography
 
