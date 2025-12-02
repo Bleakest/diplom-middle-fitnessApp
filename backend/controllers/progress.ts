@@ -1,5 +1,5 @@
 import { prisma } from '../prisma.js'
-import { CreateProgressDTO } from '../validation/zod/user/progress.dto.js'
+import { CreateProgressDTO } from '../validation/zod/progress/progress.dto.js'
 import { parseDateString, checkReportExists } from '../services/progress.service.js'
 
 /**
@@ -121,27 +121,27 @@ export async function getProgressById(
  * @returns Список всех отчетов о прогрессе
  */
 export async function getAllProgress(userId: string) {
-  const progress = await prisma.progress.findMany({
-    where: { userId },
-    orderBy: { date: 'desc' },
-    select: {
-      id: true,
-      date: true,
-      weight: true,
-      height: true,
-      chest: true,
-      waist: true,
-      hips: true,
-      arm: true,
-      leg: true,
-      photoFront: true,
-      photoSide: true,
-      photoBack: true,
-      trainerComment: true,
-      commentedAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  })
+	const progress = await prisma.progress.findMany({
+		where: { userId },
+		orderBy: { date: 'desc' },
+		select: {
+			id: true,
+			date: true,
+			weight: true,
+			height: true,
+			chest: true,
+			waist: true,
+			hips: true,
+			arm: true,
+			leg: true,
+			photoFront: true,
+			photoSide: true,
+			photoBack: true,
+			trainerComment: true,
+			commentedAt: true,
+			createdAt: true,
+			updatedAt: true,
+		},
+	})
 	return progress || []
 }

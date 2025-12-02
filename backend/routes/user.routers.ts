@@ -9,7 +9,7 @@ import {
 	ClientUpdateProfileSchema,
 	TrainerUpdateProfileSchema,
 } from '../validation/zod/user/update-profile.dto.js'
-import { CreateProgressSchema } from '../validation/zod/user/progress.dto.js'
+import { CreateProgressSchema } from '../validation/zod/progress/progress.dto.js'
 import { MAX_PHOTO_SIZE } from '../consts/file.js'
 import {
 	cleanupFilesOnError,
@@ -218,15 +218,13 @@ export default async function userRoutes(app: FastifyInstance) {
 		},
 	)
 	// Получение ВСЕХ отчетов прогресса пользователя
-app.get(
-  '/progress',
-  { preHandler: [authGuard, hasRole(['CLIENT'])] },
-  async (req, reply) => {
-    const { getAllProgress } = await import('../controllers/progress.js')
-    const progress = await getAllProgress(req.user.id)
-    return reply.status(200).send({ progress })
-  }
-)
+	app.get(
+		'/progress',
+		{ preHandler: [authGuard, hasRole(['CLIENT'])] },
+		async (req, reply) => {
+			const { getAllProgress } = await import('../controllers/progress.js')
+			const progress = await getAllProgress(req.user.id)
+			return reply.status(200).send({ progress })
+		},
+	)
 }
-
-
