@@ -22,7 +22,15 @@ import { useAppDispatch } from '../../store/hooks'
 import { updateUser } from '../../store/slices/auth.slice'
 
 const { Title } = Typography
-
+interface TrainerFormValues {
+  name: string
+  age: number
+  phone?: string
+  telegram?: string
+  whatsapp?: string
+  instagram?: string
+  bio?: string
+}
 const schema = z.object({
   name: z.string().min(2, 'Минимум 2 символа'),
   age: z.number().min(18, 'Минимальный возраст 18'),
@@ -102,7 +110,7 @@ export const TrainerInfo: React.FC = () => {
     window.location.href = '/login'
   }
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (values: TrainerFormValues) => {
     try {
       if (!trainer) return
 

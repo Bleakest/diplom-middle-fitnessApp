@@ -48,14 +48,34 @@ export const trainerApi = createApi({
   tagTypes: ['Clients', 'Client'],
   endpoints: (builder) => ({
     //  Получение всех клиентов тренера (все CLIENT + starred флаги)
-    getClients: builder.query<AuthUser[], void>({
+    // В trainer.api.ts — добавить computed поля
+    getClients: builder.query<
+      Array<{
+        id: string
+        name: string
+        avatarUrl?: string
+        starred: boolean
+        unreadMessages: number
+        hasNewReport: boolean
+      }>,
+      void
+    >({
       query: () => '/clients',
-      // бэк возвращает { clients: [...] }
-      transformResponse: (resp: { clients: AuthUser[] }) => resp.clients,
+      transformResponse: (resp: { clients: AuthUser[] }) => {
+        return resp.clients.map(client => ({
+          id: client.id,
+          name: client.name,
+          avatarUrl: client.photo || undefined,
+          starred: Boolean(client.starred),
+          unreadMessages: 0,
+          hasNewReport: false,
+        }))
+      },
       providesTags: ['Clients'],
     }),
 
-    // ✅ Переключение starred статуса клиента
+
+    // Переключение starred статуса клиента
     toggleClientStar: builder.mutation<
       { starred: boolean },
       { clientId: string }
