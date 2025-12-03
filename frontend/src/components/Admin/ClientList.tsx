@@ -54,7 +54,7 @@ export const ClientList: React.FC<ClientListProps> = ({
 								</Button>
 							</Tooltip>
 						) : null,
-						starIcon === 'filled' && client.starred ? (
+						starIcon === 'filled' && client.isFavorite ? (
 							<StarFilled
 								key='star'
 								style={{ color: 'var(--warning)' }}

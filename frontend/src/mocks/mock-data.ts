@@ -14,7 +14,7 @@ export const mockClients: ClientInTrainerProfile[] = [
 	{
 		id: '1',
 		name: 'Клиент 1',
-		starred: true,
+		isFavorite: true,
 		unreadMessages: 1,
 		hasNewReport: true,
 		avatarUrl: '',
@@ -22,7 +22,7 @@ export const mockClients: ClientInTrainerProfile[] = [
 	{
 		id: '2',
 		name: 'Клиент 2',
-		starred: true,
+		isFavorite: true,
 		unreadMessages: 0,
 		hasNewReport: false,
 		avatarUrl: '',
@@ -30,7 +30,7 @@ export const mockClients: ClientInTrainerProfile[] = [
 	{
 		id: '3',
 		name: 'Клиент 3',
-		starred: false,
+		isFavorite: false,
 		unreadMessages: 2,
 		hasNewReport: false,
 		avatarUrl: '',
@@ -38,7 +38,7 @@ export const mockClients: ClientInTrainerProfile[] = [
 	{
 		id: '4',
 		name: 'Клиент 4',
-		starred: false,
+		isFavorite: false,
 		unreadMessages: 0,
 		hasNewReport: false,
 		avatarUrl: '',

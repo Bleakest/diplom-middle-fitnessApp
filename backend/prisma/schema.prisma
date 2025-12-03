@@ -127,7 +127,7 @@ model TrainerClient {
   client    User   @relation("TrainerClientsAsClient", fields: [clientId], references: [id])
   clientId  String
 
-  starred   Boolean  @default(false)
+  isFavorite   Boolean  @default(false)
   createdAt DateTime @default(now())
 
   // Один клиент может быть только у одного тренера

@@ -57,14 +57,14 @@ export const trainerApi = createApi({
 	baseQuery: baseQueryWithReauth,
 	tagTypes: ['Clients', 'Client'],
 	endpoints: (builder) => ({
-		//  Получение всех клиентов тренера (все CLIENT + starred флаги)
+		//  Получение всех клиентов тренера (все CLIENT + isFavorite флаги)
 		// В trainer.api.ts — добавить computed поля
 		getClients: builder.query<
 			Array<{
 				id: string
 				name: string
 				avatarUrl?: string
-				starred: boolean
+				isFavorite: boolean
 				unreadMessages: number
 				hasNewReport: boolean
 			}>,
@@ -76,7 +76,7 @@ export const trainerApi = createApi({
 					id: client.id,
 					name: client.name,
 					avatarUrl: client.photo || undefined,
-					starred: Boolean(client.starred),
+					isFavorite: Boolean(client.isFavorite),
 					unreadMessages: 0,
 					hasNewReport: false,
 				}))
@@ -84,10 +84,10 @@ export const trainerApi = createApi({
 			providesTags: ['Clients'],
 		}),
 
-		// Переключение starred статуса клиента
-		toggleClientStar: builder.mutation<{ starred: boolean }, { clientId: string }>({
+		// Переключение isFavorite статуса клиента
+		toggleClientStar: builder.mutation<{ isFavorite: boolean }, { clientId: string }>({
 			query: ({ clientId }) => ({
-				url: `/clients/${clientId}/star`,
+				url: `/clients/${clientId}/favorite`,
 				method: 'PATCH',
 			}),
 			invalidatesTags: ['Clients'], // Автоматически перезагружает getClients

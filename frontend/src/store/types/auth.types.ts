@@ -65,7 +65,7 @@ export interface AuthUser {
 	age: number
 	role: 'CLIENT' | 'TRAINER'
 	photo: string | null
-	starred: false
+	isFavorite: false
 	createdAt?: string
 	updatedAt?: string
 	// Дополнительные поля для тренера

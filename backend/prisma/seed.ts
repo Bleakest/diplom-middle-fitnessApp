@@ -189,7 +189,7 @@ async function main() {
 		data: {
 			trainerId: trainer1.id,
 			clientId: client1.id,
-			starred: true,
+			isFavorite: true,
 		},
 	})
 
@@ -197,7 +197,7 @@ async function main() {
 		data: {
 			trainerId: trainer1.id,
 			clientId: client2.id,
-			starred: false,
+			isFavorite: false,
 		},
 	})
 
