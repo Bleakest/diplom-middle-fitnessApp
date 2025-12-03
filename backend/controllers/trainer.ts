@@ -1,4 +1,3 @@
-// services/trainer.service.ts
 import { prisma } from '../prisma.js'
 
 export async function getClientsForTrainer(trainerId: string) {

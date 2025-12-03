@@ -138,10 +138,22 @@ export async function getAllProgress(userId: string) {
 			photoFront: true,
 			photoSide: true,
 			photoBack: true,
-			trainerComment: true,
-			commentedAt: true,
 			createdAt: true,
 			updatedAt: true,
+			comments: {
+				select: {
+					id: true,
+					text: true,
+					createdAt: true,
+					trainer: {
+						select: {
+							id: true,
+							name: true,
+							photo: true,
+						},
+					},
+				},
+			},
 		},
 	})
 	return progress || []
