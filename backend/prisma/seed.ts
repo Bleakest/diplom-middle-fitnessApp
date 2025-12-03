@@ -220,8 +220,6 @@ async function main() {
 			hips: 93,
 			arm: 35.5,
 			leg: 56,
-			trainerComment: 'Отличный прогресс! Продолжаем в том же духе.',
-			commentedAt: new Date('2024-07-02'),
 		},
 		{
 			date: new Date('2024-08-01'),
@@ -240,8 +238,6 @@ async function main() {
 			hips: 91,
 			arm: 35,
 			leg: 55,
-			trainerComment: 'Хорошая динамика, но следи за питанием.',
-			commentedAt: new Date('2024-09-03'),
 		},
 		{
 			date: new Date('2024-10-01'),
@@ -260,8 +256,6 @@ async function main() {
 			hips: 90,
 			arm: 35,
 			leg: 55,
-			trainerComment: 'Супер! Цель почти достигнута.',
-			commentedAt: new Date('2024-11-02'),
 		},
 		{
 			date: new Date('2024-11-26'),
@@ -274,8 +268,9 @@ async function main() {
 		},
 	]
 
+	const client1ProgressRecords = []
 	for (const progress of client1Progress) {
-		await prisma.progress.create({
+		const record = await prisma.progress.create({
 			data: {
 				userId: client1.id,
 				height: 180,
@@ -285,6 +280,7 @@ async function main() {
 				...progress,
 			},
 		})
+		client1ProgressRecords.push(record)
 	}
 	const client2Progress = [
 		{
@@ -304,8 +300,6 @@ async function main() {
 			hips: 94,
 			arm: 29.5,
 			leg: 52,
-			trainerComment: 'Молодец! Видны первые результаты.',
-			commentedAt: new Date('2024-07-02'),
 		},
 		{
 			date: new Date('2024-08-01'),
@@ -324,8 +318,6 @@ async function main() {
 			hips: 92,
 			arm: 28.5,
 			leg: 51,
-			trainerComment: 'Отлично! Не забывай про растяжку.',
-			commentedAt: new Date('2024-09-04'),
 		},
 		{
 			date: new Date('2024-10-01'),
@@ -344,8 +336,6 @@ async function main() {
 			hips: 90,
 			arm: 28,
 			leg: 50,
-			trainerComment: 'Прекрасная работа! Держи темп.',
-			commentedAt: new Date('2024-11-03'),
 		},
 		{
 			date: new Date('2024-11-26'),
@@ -358,8 +348,9 @@ async function main() {
 		},
 	]
 
+	const client2ProgressRecords = []
 	for (const progress of client2Progress) {
-		await prisma.progress.create({
+		const record = await prisma.progress.create({
 			data: {
 				userId: client2.id,
 				height: 165,
@@ -369,6 +360,7 @@ async function main() {
 				...progress,
 			},
 		})
+		client2ProgressRecords.push(record)
 	}
 
 	console.log('✅ База данных успешно заполнена!')
