@@ -3,22 +3,51 @@ import type { UserProfile } from '../types/user.types'
 import type { ProgressReport } from '../types/progress.types'
 import type { AuthUser } from '../types/auth.types'
 
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: 'http://localhost:3000/api/trainer',
+  credentials: 'include',
+  prepareHeaders: (headers) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (token) {
+      headers.set('authorization', `Bearer ${token}`)
+    }
+    return headers
+  },
+})
+
+const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {
+  let result = await rawBaseQuery(args, api, extraOptions)
+
+  if (result.error && result.error.status === 401) {
+    const refreshResult = await rawBaseQuery(
+      { 
+        url: '/../auth/refresh', 
+        method: 'POST',
+        credentials: 'include' 
+      },
+      api,
+      extraOptions
+    )
+
+    if (refreshResult.data) {
+      result = await rawBaseQuery(args, api, extraOptions)
+    } else {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+        window.location.href = '/login'
+      }
+    }
+  }
+
+  return result
+}
+
 export const trainerApi = createApi({
   reducerPath: 'trainerApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:3000/api/trainer',
-    credentials: 'include', 
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token') 
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`)
-      }
-      return headers
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Clients', 'Client'],
   endpoints: (builder) => ({
-    
+    //  Получение всех клиентов тренера (все CLIENT + starred флаги)
     getClients: builder.query<AuthUser[], void>({
       query: () => '/clients',
       // бэк возвращает { clients: [...] }
@@ -26,7 +55,7 @@ export const trainerApi = createApi({
       providesTags: ['Clients'],
     }),
 
-   
+    // ✅ Переключение starred статуса клиента
     toggleClientStar: builder.mutation<
       { starred: boolean },
       { clientId: string }
@@ -35,9 +64,9 @@ export const trainerApi = createApi({
         url: `/clients/${clientId}/star`,
         method: 'PATCH',
       }),
-      invalidatesTags: ['Clients'],
+      invalidatesTags: ['Clients'], // Автоматически перезагружает getClients
     }),
-	
+
     // Для страницы /admin/client/:id (профиль клиента)
     getClientProfile: builder.query<UserProfile, { trainerId: string; clientId: string }>({
       query: ({ trainerId, clientId }) => `/${trainerId}/clients/${clientId}/profile`,
