@@ -2,6 +2,7 @@ import React from 'react'
 import { List, Avatar, Badge, Tooltip } from 'antd'
 import { StarFilled, StarOutlined } from '@ant-design/icons'
 import { mockTrainer } from '../../mocks/mock-data'
+import { useNavigate } from 'react-router-dom'
 
 interface SidebarProps {
 	clients: Array<{
@@ -15,7 +16,12 @@ interface SidebarProps {
 	onToggleStar: (clientId: string) => void
 }
 
-export const TrainerSidebar: React.FC<SidebarProps> = ({ clients, onToggleStar }) => (
+export const TrainerSidebar: React.FC<SidebarProps> = ({ clients, onToggleStar }) => 
+	
+	{
+		const navigate = useNavigate()
+		return(
+
 	<>
 		<div className='flex items-center gap-3 mb-8 px-6'>
 			<Avatar src={mockTrainer.avatarUrl} size={54} />
@@ -28,6 +34,7 @@ export const TrainerSidebar: React.FC<SidebarProps> = ({ clients, onToggleStar }
 				<List.Item
 					className='group hover:bg-blue-50 rounded-lg cursor-pointer px-3 py-2 transition border border-muted'
 					style={{ borderBottom: '1px solid var(--border)' }}
+					onClick={()=>navigate('/admin/chat/:id')}
 					actions={[
 						client.unreadMessages ? (
 							<Badge
@@ -65,3 +72,4 @@ export const TrainerSidebar: React.FC<SidebarProps> = ({ clients, onToggleStar }
 		/>
 	</>
 )
+}
