@@ -1,5 +1,6 @@
 import { prisma } from '../prisma.js'
-import { CreateProgressDTO } from '../validation/zod/user/progress.dto.js'
+import { CreateProgressDTO } from '../validation/zod/progress/progress.dto.js'
+import { CreateCommentDTO } from '../validation/zod/progress/comment.dto.js'
 import { parseDateString, checkReportExists } from '../services/progress.service.js'
 
 /**
@@ -121,27 +122,83 @@ export async function getProgressById(
  * @returns Список всех отчетов о прогрессе
  */
 export async function getAllProgress(userId: string) {
-  const progress = await prisma.progress.findMany({
-    where: { userId },
-    orderBy: { date: 'desc' },
-    select: {
-      id: true,
-      date: true,
-      weight: true,
-      height: true,
-      chest: true,
-      waist: true,
-      hips: true,
-      arm: true,
-      leg: true,
-      photoFront: true,
-      photoSide: true,
-      photoBack: true,
-      trainerComment: true,
-      commentedAt: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-  })
+	const progress = await prisma.progress.findMany({
+		where: { userId },
+		orderBy: { date: 'desc' },
+		select: {
+			id: true,
+			date: true,
+			weight: true,
+			height: true,
+			chest: true,
+			waist: true,
+			hips: true,
+			arm: true,
+			leg: true,
+			photoFront: true,
+			photoSide: true,
+			photoBack: true,
+			createdAt: true,
+			updatedAt: true,
+			comments: {
+				select: {
+					id: true,
+					text: true,
+					createdAt: true,
+					trainer: {
+						select: {
+							id: true,
+							name: true,
+							photo: true,
+						},
+					},
+				},
+			},
+		},
+	})
 	return progress || []
+}
+
+/**
+ * Добавление комментария тренером к отчету о прогрессе
+ * @param progressId - ID отчета о прогрессе
+ * @param trainerId - ID тренера
+ * @param data - Данные комментария
+ * @returns Созданный комментарий
+ */
+export async function addComment(
+	progressId: string,
+	trainerId: string,
+	data: CreateCommentDTO,
+) {
+	const { ApiError } = await import('../utils/ApiError.js')
+
+	// Проверяем существование отчета о прогрессе
+	const progress = await prisma.progress.findUnique({
+		where: { id: progressId },
+	})
+
+	if (!progress) {
+		throw ApiError.notFound('Отчет о прогрессе не найден')
+	}
+
+	// Создаем комментарий
+	const comment = await prisma.comment.create({
+		data: {
+			text: data.text,
+			progressId,
+			trainerId,
+		},
+		include: {
+			trainer: {
+				select: {
+					id: true,
+					name: true,
+					photo: true,
+				},
+			},
+		},
+	})
+
+	return comment
 }

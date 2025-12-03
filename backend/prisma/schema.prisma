@@ -91,10 +91,6 @@ model Progress {
   photoSide  String?
   photoBack  String?
 
-  // Комментарий тренера
-  trainerComment String?
-  commentedAt    DateTime?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
