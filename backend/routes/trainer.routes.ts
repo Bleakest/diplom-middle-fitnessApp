@@ -8,12 +8,18 @@ import {
 	toggleClientFavorite,
 	getTrainerInvites,
 	acceptInvite,
+<<<<<<< HEAD
 	rejectInvite,
+=======
+>>>>>>> 94cdfb0 (feat: Добавить новую ручку и контроллер.)
 } from '../controllers/trainer.js'
 import { ApiError } from '../utils/ApiError.js'
 import { GetInvitesSchema } from '../validation/zod/trainer/get-invites.dto.js'
 import { AcceptInviteParamsSchema } from '../validation/zod/trainer/accept-invite.dto.js'
+<<<<<<< HEAD
 import { RejectInviteParamsSchema } from '../validation/zod/trainer/reject-invite.dto.js'
+=======
+>>>>>>> 94cdfb0 (feat: Добавить новую ручку и контроллер.)
 
 export default async function trainerRoutes(app: FastifyInstance) {
 	// Публичный эндпоинт - просмотр всех тренеров
@@ -51,6 +57,7 @@ export default async function trainerRoutes(app: FastifyInstance) {
 		},
 	)
 
+<<<<<<< HEAD
 	// Отклонение приглашения от клиента
 	app.post(
 		'/invites/:id/reject',
@@ -64,6 +71,8 @@ export default async function trainerRoutes(app: FastifyInstance) {
 		},
 	)
 
+=======
+>>>>>>> 94cdfb0 (feat: Добавить новую ручку и контроллер.)
 	// список клиентов тренера (должен быть ДО /:id чтобы не конфликтовать)
 	app.get(
 		'/clients',
