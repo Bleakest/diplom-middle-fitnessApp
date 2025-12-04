@@ -6,6 +6,7 @@ import { authGuard } from '../middleware/authGuard.js'
 import { hasRole } from '../middleware/hasRole.js'
 import { CreateProgressSchema } from '../validation/zod/progress/progress.dto.js'
 import { CreateCommentSchema } from '../validation/zod/progress/comment.dto.js'
+import { GetProgressCommentsQuerySchema } from '../validation/zod/progress/get-comments.dto.js'
 import { MAX_PHOTO_SIZE } from '../consts/file.js'
 import {
 	cleanupFilesOnError,
@@ -132,6 +133,36 @@ export default async function progressRoutes(app: FastifyInstance) {
 		const progress = await getAllProgress(req.user.id)
 		return reply.status(200).send({ progress })
 	})
+
+	// Получение комментариев к отчету о прогрессе
+	app.get(
+		'/:id/comments',
+		{ preHandler: [authGuard, hasRole(['CLIENT', 'TRAINER'])] },
+		async (req, reply) => {
+			const { getProgressComments } = await import('../controllers/progress.js')
+			const { ApiError } = await import('../utils/ApiError.js')
+			const { Regex } = await import('../consts/regex.js')
+			const { id } = req.params as { id: string }
+
+			// Валидация ID отчета
+			if (!id || id.length < 10 || !Regex.cuid.test(id)) {
+				throw ApiError.badRequest('Некорректный формат ID отчета')
+			}
+
+			// Валидация query параметров
+			const validation = GetProgressCommentsQuerySchema.safeParse(req.query)
+
+			if (!validation.success) {
+				const firstError = validation.error.issues[0]
+				throw ApiError.badRequest(firstError.message)
+			}
+
+			// Получение комментариев
+			const result = await getProgressComments(id, validation.data)
+
+			return reply.status(200).send(result)
+		},
+	)
 
 	// Добавление комментария тренером к отчету о прогрессе
 	app.post(
