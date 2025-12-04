@@ -35,23 +35,22 @@ Authorization: Bearer <access_token>
 ```json
 {
 	"user": {
-		"id": "...",
-		"name": "...",
-		"email": "...",
-		"phone": "...",
-		"photo": "...",
+		"id": "cm4abc123def456",
+		"name": "Иван Петров",
+		"email": "ivan@example.com",
+		"phone": "+79991234567",
+		"photo": "/uploads/photos/user-photo.jpg",
 		"age": 25,
 		"role": "CLIENT",
-		// Для CLIENT:
 		"goal": "Похудение",
-		"restrictions": "Аллергия на орехи",
+		"restrictions": "Проблемы с коленями",
 		"experience": "Новичок",
 		"diet": "Без ограничений",
-		// Для TRAINER:
-		"bio": "Опытный тренер...",
-		"telegram": "@trainer",
-		"whatsapp": "+79991234567",
-		"instagram": "@trainer_insta"
+		"photoFront": "/uploads/photos/front-abc123.jpg",
+		"photoSide": "/uploads/photos/side-abc123.jpg",
+		"photoBack": "/uploads/photos/back-abc123.jpg",
+		"createdAt": "2025-11-20T10:30:00.000Z",
+		"updatedAt": "2025-12-03T10:30:00.000Z"
 	}
 }
 ```
