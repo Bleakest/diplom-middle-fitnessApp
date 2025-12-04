@@ -8,10 +8,12 @@ import {
 	toggleClientFavorite,
 	getTrainerInvites,
 	acceptInvite,
+	rejectInvite,
 } from '../controllers/trainer.js'
 import { ApiError } from '../utils/ApiError.js'
 import { GetInvitesSchema } from '../validation/zod/trainer/get-invites.dto.js'
 import { AcceptInviteParamsSchema } from '../validation/zod/trainer/accept-invite.dto.js'
+import { RejectInviteParamsSchema } from '../validation/zod/trainer/reject-invite.dto.js'
 
 export default async function trainerRoutes(app: FastifyInstance) {
 	// Публичный эндпоинт - просмотр всех тренеров
@@ -46,6 +48,19 @@ export default async function trainerRoutes(app: FastifyInstance) {
 				message: 'Вы приняли клиента в работу',
 				client,
 			})
+		},
+	)
+
+	// Отклонение приглашения от клиента
+	app.post(
+		'/invites/:id/reject',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		async (req, reply) => {
+			const { id } = RejectInviteParamsSchema.parse(req.params)
+
+			const result = await rejectInvite(req.user.id, id)
+
+			return reply.status(200).send(result)
 		},
 	)
 
