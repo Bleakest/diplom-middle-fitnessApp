@@ -2,21 +2,28 @@ import { prisma } from '../prisma.js'
 import { hash, compare } from 'bcryptjs'
 import { ApiError } from '../utils/ApiError.js'
 
-import { generateAccessToken, generateRefreshToken } from 'services/token.service.js'
-import { findUserByEmailOrPhone } from 'utils/findUserByContact.js'
+import { generateAccessToken, generateRefreshToken } from '../services/token.service.js'
+import { findUserByEmailOrPhone } from '../utils/findUserByContact.js'
 import {
 	ClientRegisterDTO,
 	TrainerRegisterDTO,
-} from 'validation/zod/auth/register.dto.js'
-import { LoginDTO } from 'validation/zod/auth/login.dto.js'
+} from '../validation/zod/auth/register.dto.js'
+import { LoginDTO } from '../validation/zod/auth/login.dto.js'
 import {
 	ClientUpdateProfileDTO,
 	TrainerUpdateProfileDTO,
-} from 'validation/zod/user/update-profile.dto.js'
-import { CLIENT, TRAINER } from 'consts/role.js'
-import { deletePhoto } from 'utils/uploadPhotos.js'
+} from '../validation/zod/user/update-profile.dto.js'
+import { CLIENT, TRAINER } from '../consts/role.js'
+import { deletePhoto } from '../utils/uploadPhotos.js'
 
-// register
+/**
+ * Регистрация нового пользователя (клиента или тренера)
+ * Для клиента также создается первая запись Progress с начальными измерениями
+ * @param data - Данные регистрации пользователя
+ * @param role - Роль пользователя (CLIENT или TRAINER)
+ * @param filesMap - Объект с путями к загруженным файлам
+ * @returns Объект с данными пользователя и токенами доступа
+ */
 export async function registerUser(
 	data: ClientRegisterDTO | TrainerRegisterDTO,
 	role: typeof CLIENT | typeof TRAINER,
@@ -30,15 +37,77 @@ export async function registerUser(
 
 	const passwordHash = await hash(data.password, 10)
 
-	const { emailOrPhone, ...rest } = data
+	// Если клиент - извлекаем измерения для Progress
+	if (role === CLIENT) {
+		const {
+			emailOrPhone,
+			password,
+			weight,
+			height,
+			waist,
+			chest,
+			hips,
+			arm,
+			leg,
+			...clientProfile
+		} = data as ClientRegisterDTO
+
+		// Создаем пользователя БЕЗ фотографий прогресса
+		const createdUser = await prisma.user.create({
+			data: {
+				...clientProfile,
+				// Используем правильное поле в зависимости от типа
+				...(type === 'email' ? { email: emailOrPhone } : { phone: emailOrPhone }),
+				password: passwordHash,
+				role,
+			},
+			select: {
+				id: true,
+				role: true,
+			},
+		})
+
+		// Создаем первый Progress с измерениями И фотографиями
+		await prisma.progress.create({
+			data: {
+				userId: createdUser.id,
+				weight,
+				waist,
+				hips,
+				height,
+				chest,
+				arm,
+				leg,
+				photoFront: filesMap.photoFront,
+				photoSide: filesMap.photoSide,
+				photoBack: filesMap.photoBack,
+			},
+		})
+
+		const refreshTokenData = await generateRefreshToken(createdUser.id)
+		const accessToken = generateAccessToken(createdUser.id, refreshTokenData.id)
+
+		return {
+			user: {
+				role: createdUser.role,
+			},
+			token: {
+				accessToken,
+				refreshToken: refreshTokenData.token,
+			},
+		}
+	}
+
+	// Создаем тренера (без измерений и Progress)
+	const { emailOrPhone, password, ...trainerProfile } = data as TrainerRegisterDTO
 
 	const createdUser = await prisma.user.create({
 		data: {
-			...rest,
-			[type]: emailOrPhone,
+			...trainerProfile,
+			// Используем правильное поле в зависимости от типа
+			...(type === 'email' ? { email: emailOrPhone } : { phone: emailOrPhone }),
 			password: passwordHash,
 			role,
-			...filesMap,
 		},
 		select: {
 			id: true,
@@ -60,7 +129,12 @@ export async function registerUser(
 	}
 }
 
-// login
+/**
+ * Аутентификация пользователя
+ * Удаляет все старые refresh токены и создает новые
+ * @param data - Данные для входа (email/phone и пароль)
+ * @returns Объект с данными пользователя и токенами доступа
+ */
 export async function loginUser(data: LoginDTO) {
 	const { emailOrPhone, password } = data
 
@@ -95,7 +169,12 @@ export async function loginUser(data: LoginDTO) {
 	}
 }
 
-// logout
+/**
+ * Выход пользователя из системы
+ * Удаляет все refresh токены пользователя
+ * @param userId - ID пользователя
+ * @throws {ApiError} Если пользователь не авторизован
+ */
 export async function logoutUser(userId: string) {
 	// Проверяем, есть ли активные refresh токены для этого пользователя
 	const existingTokens = await prisma.refreshToken.findMany({
@@ -112,7 +191,13 @@ export async function logoutUser(userId: string) {
 	})
 }
 
-// get user by id
+/**
+ * Получение информации о пользователе по ID
+ * Возвращает разные наборы данных в зависимости от роли (CLIENT/TRAINER)
+ * @param userId - ID пользователя
+ * @returns Объект с данными пользователя
+ * @throws {ApiError} Если пользователь не найден
+ */
 export async function getUser(userId: string) {
 	const user = await prisma.user.findUnique({
 		where: { id: userId },
@@ -164,7 +249,15 @@ export async function getUser(userId: string) {
 	return base
 }
 
-// edit client profile
+/**
+ * Обновление профиля клиента
+ * Проверяет уникальность email и phone, удаляет старое фото при загрузке нового
+ * @param userId - ID клиента
+ * @param data - Данные для обновления профиля
+ * @param filesMap - Объект с путями к загруженным файлам (опционально)
+ * @returns Обновленные данные пользователя
+ * @throws {ApiError} Если пользователь не найден или данные не уникальны
+ */
 export async function editClientProfile(
 	userId: string,
 	data: ClientUpdateProfileDTO,
@@ -225,7 +318,15 @@ export async function editClientProfile(
 	return updatedUser
 }
 
-// edit trainer profile
+/**
+ * Обновление профиля тренера
+ * Проверяет уникальность email и phone, удаляет старое фото при загрузке нового
+ * @param userId - ID тренера
+ * @param data - Данные для обновления профиля
+ * @param filesMap - Объект с путями к загруженным файлам (опционально)
+ * @returns Обновленные данные пользователя
+ * @throws {ApiError} Если пользователь не найден или данные не уникальны
+ */
 export async function editTrainerProfile(
 	userId: string,
 	data: TrainerUpdateProfileDTO,

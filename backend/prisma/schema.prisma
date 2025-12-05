@@ -3,14 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
 
 enum UserRole {
   CLIENT
   TRAINER
+}
+
+// Тип приёма пищи
+enum MealType {
+  BREAKFAST
+  SNACK
+  LUNCH
+  DINNER
 }
 
 model User {
@@ -27,20 +35,10 @@ model User {
   role      UserRole @default(CLIENT)
 
   // поля client
-  weight       Float?
-  height       Float?
-  waist        Float?
-  chest        Float?
-  hips         Float?
-  arm          Float?
-  leg          Float?
   goal         String?
   restrictions String?
   experience   String?
   diet         String?
-  photoFront   String?
-  photoSide    String?
-  photoBack    String?
 
   // поля trainer
   telegram  String?
@@ -48,7 +46,17 @@ model User {
   instagram String?
   bio       String?
 
-  refreshTokens RefreshToken[]
+  refreshTokens   RefreshToken[]
+  progressReports Progress[]
+  comments        Comment[]
+
+  // связи тренер–клиент
+  trainerClients TrainerClient[] @relation("TrainerClientsAsTrainer")
+  asClientOf     TrainerClient[] @relation("TrainerClientsAsClient")
+
+  // 🔽 связи для питания
+  nutritionCategories   NutritionCategory[]     @relation("UserNutritionCategories")
+  assignedNutritionPlan AssignedNutritionPlan[]
 }
 
 model RefreshToken {
@@ -58,4 +66,162 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
+}
+
+model Progress {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime @default(now())
+
+  // Обязательные измерения (по ТЗ)
+  weight Float
+  waist  Float
+  hips   Float
+
+  // Опциональные измерения
+  height Float?
+  chest  Float?
+  arm    Float?
+  leg    Float?
+
+  // Фото отчета
+  photoFront String?
+  photoSide  String?
+  photoBack  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comments Comment[]
+
+  @@index([userId, date])
+  @@index([userId, createdAt])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+
+  progressId String
+  progress   Progress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+
+  trainerId String
+  trainer   User   @relation(fields: [trainerId], references: [id], onDelete: Cascade)
+
+  @@index([progressId])
+  @@index([trainerId])
+}
+
+// Статусы приглашений тренер-клиент
+enum TrainerClientStatus {
+  PENDING // Клиент отправил приглашение, ждёт ответа
+  ACCEPTED // Тренер принял, работает с клиентом
+  REJECTED // Тренер отклонил приглашение
+}
+
+// Связь тренера и его клиента с системой приглашений
+model TrainerClient {
+  id        String @id @default(cuid())
+  trainer   User   @relation("TrainerClientsAsTrainer", fields: [trainerId], references: [id], onDelete: Cascade)
+  trainerId String
+  client    User   @relation("TrainerClientsAsClient", fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+
+  // Статус приглашения
+  status TrainerClientStatus @default(PENDING)
+
+  // Флаг избранности (только для ACCEPTED)
+  isFavorite Boolean @default(false)
+
+  createdAt  DateTime  @default(now())
+  acceptedAt DateTime? // Когда тренер принял приглашение
+
+  // Один клиент может пригласить одного тренера только один раз
+  @@unique([clientId, trainerId])
+  @@index([clientId])
+  @@index([trainerId])
+  @@index([status])
+}
+
+//
+// ======= Питание =======
+//
+
+// Категория программ питания
+model NutritionCategory {
+  id          String  @id @default(cuid())
+  trainerId   String
+  trainer     User    @relation("UserNutritionCategories", fields: [trainerId], references: [id], onDelete: Cascade)
+  name        String  @unique
+  description String?
+
+  programs NutritionProgram[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Программа питания
+model NutritionProgram {
+  id         String            @id @default(cuid())
+  categoryId String
+  category   NutritionCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  name        String  @unique
+  description String?
+
+  days          ProgramDay[]
+  assignedPlans AssignedNutritionPlan[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// День программы
+model ProgramDay {
+  id        String           @id @default(cuid())
+  programId String
+  program   NutritionProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  dayTitle String
+  dayOrder Int
+
+  meals Meal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Приём пищи
+model Meal {
+  id    String     @id @default(cuid())
+  dayId String
+  day   ProgramDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  type      MealType
+  name      String
+  mealOrder Int
+
+  items String[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Назначенный клиенту план питания
+model AssignedNutritionPlan {
+  id       String @id @default(cuid())
+  clientId String
+  client   User   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  programId String
+  program   NutritionProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  // Если нужно ограничить конкретными днями — массив ID
+  dayIds String[]
+
+  createdAt DateTime @default(now())
 }

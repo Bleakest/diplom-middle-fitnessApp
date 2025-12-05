@@ -3,9 +3,9 @@ import { Layout, Typography, Button, Empty, Modal, Card } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useParams } from 'react-router-dom'
 import type { ProgramDay } from '../../types/nutritions'
-import { mockProgramDays } from '../../mockData(удалим потом)/mockProgramDays'
-import { CreateDayForm } from './components/CreateDayForm'
-import { DayCard } from './components/DayCard'
+import { mockProgramDays } from '../../mocks/mockProgramDays'
+import { DayCard } from '../../components/Admin/DayCard'
+import { CreateDayForm } from '../../components/Admin/CreateDayForm'
 
 const { Title } = Typography
 

@@ -1,193 +1,210 @@
-// store/api/nutrition.api.ts
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { AssignedNutritionPlan, NutritionPlan } from '../types/nutrition.types';
+import type {
+	NutritionCategory,
+	NutritionProgram,
+	ProgramDay,
+	AssignedNutritionPlan,
+} from '../types/nutrition.types'
+import {
+	createApi,
+	fetchBaseQuery,
+	type BaseQueryFn,
+	type FetchArgs,
+	type FetchBaseQueryError,
+} from '@reduxjs/toolkit/query/react'
+import { API_ENDPOINTS } from '../../config/api.config'
 
-// Моковые данные для страницы /me/nutrition
-const mockNutritionPlans: NutritionPlan[] = [
-  {
-    id: '1',
-    trainerId: '2',
-    name: 'План для похудения',
-    description: 'Сбалансированное питание для постепенного снижения веса с сохранением мышечной массы',
-    goal: 'weight_loss',
-    dailyCalories: 1800,
-    meals: [
-      {
-        id: '1',
-        name: 'Завтрак',
-        description: 'Овсянка на воде с ягодами и орехами, 1 вареное яйцо',
-        calories: 400,
-        protein: 20,
-        carbs: 55,
-        fat: 12,
-        time: '08:00',
-      },
-      {
-        id: '2',
-        name: 'Перекус',
-        description: 'Яблоко, горсть миндаля',
-        calories: 200,
-        protein: 5,
-        carbs: 25,
-        fat: 10,
-        time: '11:00',
-      },
-      {
-        id: '3',
-        name: 'Обед',
-        description: 'Куриная грудка с гречкой и тушеными овощами',
-        calories: 500,
-        protein: 35,
-        carbs: 45,
-        fat: 15,
-        time: '14:00',
-      },
-      {
-        id: '4',
-        name: 'Перекус',
-        description: 'Творог с йогуртом',
-        calories: 250,
-        protein: 25,
-        carbs: 15,
-        fat: 8,
-        time: '17:00',
-      },
-      {
-        id: '5',
-        name: 'Ужин',
-        description: 'Рыба на пару с салатом из свежих овощей',
-        calories: 350,
-        protein: 30,
-        carbs: 20,
-        fat: 15,
-        time: '19:00',
-      },
-    ],
-    created_at: '2024-01-15',
-  },
-  {
-    id: '2',
-    trainerId: '2',
-    name: 'План для набора массы',
-    description: 'Высококалорийное питание для набора мышечной массы',
-    goal: 'muscle_gain',
-    dailyCalories: 3000,
-    meals: [
-      {
-        id: '6',
-        name: 'Завтрак',
-        description: 'Омлет из 3 яиц, тосты с авокадо, протеиновый коктейль',
-        calories: 600,
-        protein: 40,
-        carbs: 45,
-        fat: 25,
-        time: '08:00',
-      },
-      // ... другие приемы пищи
-    ],
-    created_at: '2024-02-01',
-  },
-];
+const rawBaseQuery = fetchBaseQuery({
+	baseUrl: API_ENDPOINTS.base,
+	credentials: 'include',
+	prepareHeaders: (headers, { endpoint, type }) => {
+		const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+		if (token) {
+			headers.set('authorization', `Bearer ${token}`)
+		}
 
-// Для страницы /me/nutrition
-const mockAssignedPlans: AssignedNutritionPlan[] = [
-  {
-    id: '1',
-    clientId: '1',
-    planId: '1',
-    startDate: '2024-03-01',
-    endDate: '2024-06-01',
-    plan: mockNutritionPlans[0],
-  },
-];
+		const isFormDataEndpoint = [
+			'updateClientProfileWithPhoto',
+			'updateTrainerProfileWithPhoto',
+		].includes(endpoint)
 
-// Для страниц тренера /admin/nutrition
-const mockTrainerPlans = mockNutritionPlans.filter(plan => plan.trainerId === '2');
+		const isJsonMutation =
+			!isFormDataEndpoint && type === 'mutation' && !endpoint.includes('WithPhoto')
+
+		if (isJsonMutation) {
+			headers.set('Content-Type', 'application/json')
+		}
+
+		return headers
+	},
+})
+
+export const baseQueryWithReauth: BaseQueryFn<
+	string | FetchArgs,
+	unknown,
+	FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+	let result = await rawBaseQuery(args, api, extraOptions)
+
+	if (result.error && result.error.status === 401) {
+		const refreshResult = await rawBaseQuery(
+			{
+				url: '/../auth/refresh',
+				method: 'POST',
+				credentials: 'include',
+			},
+			api,
+			extraOptions,
+		)
+
+		if (refreshResult.data) {
+			result = await rawBaseQuery(args, api, extraOptions)
+		} else if (typeof window !== 'undefined') {
+			localStorage.removeItem('token')
+			window.location.href = '/login'
+		}
+	}
+
+	return result
+}
 
 export const nutritionApi = createApi({
-  reducerPath: 'nutritionApi',
-  baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api/nutrition',
-    fetchFn: async (...args) => {
-      await new Promise(resolve => setTimeout(resolve, 700));
-      return fetch(...args);
-    },
-  }),
-  tagTypes: ['NutritionPlan', 'AssignedNutritionPlan'],
-  endpoints: (builder) => ({
-    // Для страницы /me/nutrition (клиент)
-    getAssignedNutritionPlan: builder.query<AssignedNutritionPlan, string>({
-      query: (userId) => `/${userId}/plan`,
-      providesTags: ['AssignedNutritionPlan'],
-    }),
-    
-    // Для страницы /admin/nutrition (тренер - список планов)
-    getNutritionPlans: builder.query<NutritionPlan[], string>({
-      query: (trainerId) => `/trainer/${trainerId}/plans`,
-      providesTags: ['NutritionPlan'],
-    }),
-    
-    // Для страницы /admin/nutrition/:category/:subcategory (просмотр плана)
-    getNutritionPlan: builder.query<NutritionPlan, string>({
-      query: (planId) => `/plans/${planId}`,
-      providesTags: ['NutritionPlan'],
-    }),
-    
-    // Для страницы /admin/nutrition/:category/create (создание плана)
-    createNutritionPlan: builder.mutation<NutritionPlan, Omit<NutritionPlan, 'id'>>({
-      query: (plan) => ({
-        url: '/plans',
-        method: 'POST',
-        body: plan,
-      }),
-      invalidatesTags: ['NutritionPlan'],
-    }),
-    
-    // Для страницы /admin/client/:id/add-nutrition (назначение плана клиенту)
-    assignNutritionPlan: builder.mutation<void, { 
-      clientId: string; 
-      planId: string; 
-      startDate: string; 
-      endDate?: string 
-    }>({
-      query: ({ clientId, planId, startDate, endDate }) => ({
-        url: `/${clientId}/assign`,
-        method: 'POST',
-        body: { planId, startDate, endDate },
-      }),
-      invalidatesTags: ['AssignedNutritionPlan'],
-    }),
-    
-    // Для обновления плана питания
-    updateNutritionPlan: builder.mutation<NutritionPlan, { 
-      planId: string; 
-      plan: Partial<NutritionPlan> 
-    }>({
-      query: ({ planId, plan }) => ({
-        url: `/plans/${planId}`,
-        method: 'PUT',
-        body: plan,
-      }),
-      invalidatesTags: ['NutritionPlan'],
-    }),
-    
-    // Для удаления плана питания
-    deleteNutritionPlan: builder.mutation<void, string>({
-      query: (planId) => ({
-        url: `/plans/${planId}`,
-        method: 'DELETE',
-      }),
-      invalidatesTags: ['NutritionPlan'],
-    }),
-  }),
-});
+	reducerPath: 'nutritionApi',
+	baseQuery: baseQueryWithReauth,
+	tagTypes: ['Category', 'Program', 'Day', 'AssignedPlan'],
+	endpoints: (builder) => ({
+		// План питания текущего клиента
+		getClientNutritionPlan: builder.query<ProgramDay[], void>({
+			query: () => '/nutrition/client/plan',
+			providesTags: ['AssignedPlan', 'Day'],
+		}),
+
+		// === КАТЕГОРИИ ===
+		getCategories: builder.query<NutritionCategory[], void>({
+			query: () => '/categories',
+			providesTags: ['Category'],
+		}),
+
+		getCategory: builder.query<NutritionCategory, string>({
+			query: (categoryId) => `/categories/${categoryId}`,
+			providesTags: ['Category'],
+		}),
+
+		createCategory: builder.mutation<NutritionCategory, Omit<NutritionCategory, 'id'>>({
+			query: (category) => ({
+				url: '/categories',
+				method: 'POST',
+				body: category,
+			}),
+			invalidatesTags: ['Category'],
+		}),
+
+		// === ПРОГРАММЫ ===
+		getPrograms: builder.query<NutritionProgram[], string>({
+			query: (categoryId) => `/categories/${categoryId}/programs`,
+			providesTags: ['Program'],
+		}),
+
+		getProgram: builder.query<NutritionProgram, string>({
+			query: (programId) => `/programs/${programId}`,
+			providesTags: ['Program'],
+		}),
+
+		createProgram: builder.mutation<NutritionProgram, Omit<NutritionProgram, 'id'>>({
+			query: (program) => ({
+				url: '/programs',
+				method: 'POST',
+				body: program,
+			}),
+			invalidatesTags: ['Program'],
+		}),
+
+		updateProgram: builder.mutation<NutritionProgram, NutritionProgram>({
+			query: (program) => ({
+				url: `/programs/${program.id}`,
+				method: 'PUT',
+				body: program,
+			}),
+			invalidatesTags: ['Program'],
+		}),
+
+		deleteProgram: builder.mutation<void, string>({
+			query: (programId) => ({
+				url: `/programs/${programId}`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Program'],
+		}),
+
+		// === ДНИ ===
+		getProgramDays: builder.query<ProgramDay[], string>({
+			query: (programId) => `/programs/${programId}/days`,
+			providesTags: ['Day'],
+		}),
+
+		getDay: builder.query<ProgramDay, string>({
+			query: (dayId) => `/days/${dayId}`,
+			providesTags: ['Day'],
+		}),
+
+		createDay: builder.mutation<ProgramDay, Omit<ProgramDay, 'id'>>({
+			query: (day) => ({
+				url: '/days',
+				method: 'POST',
+				body: day,
+			}),
+			invalidatesTags: ['Day'],
+		}),
+
+		updateDay: builder.mutation<ProgramDay, ProgramDay>({
+			query: (day) => ({
+				url: `/days/${day.id}`,
+				method: 'PUT',
+				body: day,
+			}),
+			invalidatesTags: ['Day'],
+		}),
+
+		deleteDay: builder.mutation<void, string>({
+			query: (dayId) => ({
+				url: `/days/${dayId}`,
+				method: 'DELETE',
+			}),
+			invalidatesTags: ['Day'],
+		}),
+
+		// === НАЗНАЧЕНИЕ ПЛАНОВ ===
+		assignNutritionPlan: builder.mutation<
+			AssignedNutritionPlan,
+			{
+				clientId: string
+				programId: string
+				dayIds: string[]
+			}
+		>({
+			query: (assignment) => ({
+				url: `/clients/${assignment.clientId}/assign`,
+				method: 'POST',
+				body: assignment,
+			}),
+			invalidatesTags: ['AssignedPlan'],
+		}),
+	}),
+})
 
 export const {
-  useGetAssignedNutritionPlanQuery,
-  useGetNutritionPlansQuery,
-  useGetNutritionPlanQuery,
-  useCreateNutritionPlanMutation,
-  useAssignNutritionPlanMutation,
-  useUpdateNutritionPlanMutation,
-  useDeleteNutritionPlanMutation,
-} = nutritionApi;
+	useGetCategoriesQuery,
+	useGetCategoryQuery,
+	useCreateCategoryMutation,
+	useGetProgramsQuery,
+	useGetProgramQuery,
+	useCreateProgramMutation,
+	useUpdateProgramMutation,
+	useDeleteProgramMutation,
+	useGetProgramDaysQuery,
+	useGetDayQuery,
+	useCreateDayMutation,
+	useUpdateDayMutation,
+	useDeleteDayMutation,
+	useAssignNutritionPlanMutation,
+	useGetClientNutritionPlanQuery,
+} = nutritionApi

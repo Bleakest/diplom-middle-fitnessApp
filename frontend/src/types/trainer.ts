@@ -11,7 +11,7 @@ export interface ClientInTrainerProfile {
 	id: string
 	name: string
 	avatarUrl?: string
-	starred: boolean
+	isFavorite: boolean
 	unreadMessages: number
 	hasNewReport: boolean
 }

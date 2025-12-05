@@ -1,13 +1,16 @@
-import { editClientProfile, editTrainerProfile, getUser } from 'controllers/user.js'
+import { editClientProfile, editTrainerProfile, getUser } from '../controllers/user.js'
+import { inviteTrainer } from '../controllers/client.js'
 import { FastifyInstance } from 'fastify'
 import multipart from '@fastify/multipart'
 
-import { authGuard } from 'middleware/authGuard.js'
-import { hasRole } from 'middleware/hasRole.js'
+import { authGuard } from '../middleware/authGuard.js'
+import { hasRole } from '../middleware/hasRole.js'
 import {
 	ClientUpdateProfileSchema,
 	TrainerUpdateProfileSchema,
-} from 'validation/zod/user/update-profile.dto.js'
+} from '../validation/zod/user/update-profile.dto.js'
+import { InviteTrainerSchema } from '../validation/zod/client/invite-trainer.dto.js'
+import { cleanupFilesOnError, attachFilesToRequest } from '../utils/uploadPhotos.js'
 
 export default async function userRoutes(app: FastifyInstance) {
 	app.register(multipart)
@@ -28,14 +31,7 @@ export default async function userRoutes(app: FastifyInstance) {
 		'/client/profile',
 		{
 			preHandler: [authGuard, hasRole(['CLIENT'])],
-			onError: async (request, reply, error) => {
-				// Удаляем загруженные файлы при ошибке
-				const uploadedFiles = (request as any).uploadedFiles as string[] | undefined
-				if (uploadedFiles && uploadedFiles.length > 0) {
-					const { deletePhoto } = await import('utils/uploadPhotos.js')
-					uploadedFiles.forEach((filePath) => deletePhoto(filePath))
-				}
-			},
+			onError: cleanupFilesOnError,
 		},
 		async (req, reply) => {
 			let body: Record<string, string>
@@ -44,14 +40,13 @@ export default async function userRoutes(app: FastifyInstance) {
 			// Проверяем, является ли запрос multipart (есть ли файлы)
 			if (req.isMultipart()) {
 				// Обрабатываем загрузку файлов (только основное фото профиля, макс. 500KB)
-				const { uploadPhotos } = await import('utils/uploadPhotos.js')
+				const { uploadPhotos } = await import('../utils/uploadPhotos.js')
 				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024)
 				body = uploadResult.body
 				filesMap = uploadResult.files
 
 				// Сохраняем пути загруженных файлов для возможной очистки при ошибке
-				const uploadedFiles = Object.values(uploadResult.files)
-				Object.assign(req, { uploadedFiles })
+				attachFilesToRequest(req, filesMap)
 			} else {
 				// Если нет файлов, просто берём body
 				body = (req.body as Record<string, string>) || {}
@@ -73,14 +68,7 @@ export default async function userRoutes(app: FastifyInstance) {
 		'/trainer/profile',
 		{
 			preHandler: [authGuard, hasRole(['TRAINER'])],
-			onError: async (request, reply, error) => {
-				// Удаляем загруженные файлы при ошибке
-				const uploadedFiles = (request as any).uploadedFiles as string[] | undefined
-				if (uploadedFiles && uploadedFiles.length > 0) {
-					const { deletePhoto } = await import('utils/uploadPhotos.js')
-					uploadedFiles.forEach((filePath) => deletePhoto(filePath))
-				}
-			},
+			onError: cleanupFilesOnError,
 		},
 		async (req, reply) => {
 			let body: Record<string, string>
@@ -89,14 +77,13 @@ export default async function userRoutes(app: FastifyInstance) {
 			// Проверяем, является ли запрос multipart (есть ли файлы)
 			if (req.isMultipart()) {
 				// Обрабатываем загрузку файлов (только основное фото профиля, макс. 500KB)
-				const { uploadPhotos } = await import('utils/uploadPhotos.js')
+				const { uploadPhotos } = await import('../utils/uploadPhotos.js')
 				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024)
 				body = uploadResult.body
 				filesMap = uploadResult.files
 
 				// Сохраняем пути загруженных файлов для возможной очистки при ошибке
-				const uploadedFiles = Object.values(uploadResult.files)
-				Object.assign(req, { uploadedFiles })
+				attachFilesToRequest(req, filesMap)
 			} else {
 				// Если нет файлов, просто берём body
 				body = (req.body as Record<string, string>) || {}
@@ -113,6 +100,22 @@ export default async function userRoutes(app: FastifyInstance) {
 			return reply.status(200).send({
 				message: 'Профиль тренера успешно обновлён',
 				user: updatedProfile,
+			})
+		},
+	)
+
+	// Отправка приглашения тренеру (только для клиентов)
+	app.post(
+		'/client/invite-trainer',
+		{ preHandler: [authGuard, hasRole(['CLIENT'])] },
+		async (req, reply) => {
+			const { trainerId } = InviteTrainerSchema.parse(req.body)
+
+			const invite = await inviteTrainer(req.user.id, trainerId)
+
+			return reply.status(201).send({
+				message: 'Приглашение отправлено тренеру',
+				invite,
 			})
 		},
 	)

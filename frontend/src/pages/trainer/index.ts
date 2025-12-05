@@ -1,5 +1,5 @@
 export * from './AddNutritionTrainer'
-export * from './Admin/Admin'
+export * from './Admin'
 export * from './ChatWithClient'
 export * from './ClientProfile'
 export * from './CreateNutritionTrainer'
