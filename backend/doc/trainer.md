@@ -919,9 +919,9 @@ curl -X GET http://localhost:3000/api/trainer/clients/cm4abc123def456 \
 
 ## Добавить/убрать клиента в избранное
 
-Переключает статус "избранное" для клиента.
+Переключает статус "избранное" для клиента (toggle).
 
-**Endpoint:** `PATCH /api/trainer/clients/:clientId/favorite`
+**Endpoint:** `PUT /api/trainer/clients/:id/favorite`
 
 **Права доступа:** `TRAINER`
 
@@ -935,13 +935,13 @@ Authorization: Bearer <access_token>
 
 | Параметр | Тип    | Описание          |
 | -------- | ------ | ----------------- |
-| clientId | string | ID клиента (CUID) |
+| id       | string | ID клиента (CUID) |
 
 ### Примеры запросов
 
 ```bash
 # Добавить/убрать клиента в избранное
-curl -X PATCH http://localhost:3000/api/trainer/clients/cm4abc123def456/favorite \
+curl -X PUT http://localhost:3000/api/trainer/clients/cm4abc123def456/favorite \
   -H "Authorization: Bearer <access_token>"
 ```
 
@@ -965,20 +965,74 @@ curl -X PATCH http://localhost:3000/api/trainer/clients/cm4abc123def456/favorite
 }
 ```
 
-### Описание
+### Описание полей ответа
+
+- `isFavorite` - новый статус избранного (`true` - добавлен, `false` - убран)
+- `message` - подтверждающее сообщение о действии
+
+### Логика работы
 
 Эндпоинт работает как переключатель (toggle):
 
-1. Если связь `TrainerClient` не существует - создается с `isFavorite: true`
-2. Если связь существует с `isFavorite: false` - переключается на `true`
-3. Если связь существует с `isFavorite: true` - переключается на `false`
+1. **Проверка связи:**
+
+   - Должна существовать связь `TrainerClient` между тренером и клиентом
+   - Статус связи должен быть `ACCEPTED` (клиент в работе)
+   - Если связи нет → ошибка 404
+   - Если статус не `ACCEPTED` → ошибка 403
+
+2. **Переключение флага:**
+
+   - Если `isFavorite: false` → переключается на `true`
+   - Если `isFavorite: true` → переключается на `false`
+
+3. **Возврат результата:**
+   - Возвращается новый статус и поясняющее сообщение
 
 ### Ошибки
 
-- **400 Bad Request** - Некорректный формат ID клиента
-- **401 Unauthorized** - Отсутствует или недействителен access token
-- **403 Forbidden** - Доступ только для тренеров
-- **404 Not Found** - Клиент не найден
+**400 Bad Request** - Некорректный формат ID клиента
+
+```json
+{
+	"statusCode": 400,
+	"message": "ID клиента обязателен"
+}
+```
+
+**401 Unauthorized** - Отсутствует или недействителен access token
+
+```json
+{
+	"statusCode": 401,
+	"message": "Unauthorized"
+}
+```
+
+**403 Forbidden** - Вы не работаете с этим клиентом
+
+```json
+{
+	"statusCode": 403,
+	"message": "Вы не работаете с этим клиентом"
+}
+```
+
+**404 Not Found** - Клиент не найден
+
+```json
+{
+	"statusCode": 404,
+	"message": "Клиент не найден"
+}
+```
+
+### Примечания
+
+- Эндпоинт доступен **только тренерам**, работающим с данным клиентом (статус `ACCEPTED`)
+- Тренер **не может** добавить в избранное клиента, который не работает с ним
+- Флаг избранного - локальная функция тренера, не влияет на клиента
+- Используется для удобной фильтрации клиентов в списке
 
 ---
 
