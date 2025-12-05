@@ -20,11 +20,26 @@ import { GetClientProfileParamsSchema } from '../validation/zod/trainer/get-clie
 import { ToggleFavoriteParamsSchema } from '../validation/zod/trainer/toggle-favorite.dto.js'
 
 export default async function trainerRoutes(app: FastifyInstance) {
-	// Публичный эндпоинт - просмотр всех тренеров
-	app.get('/all', async (req, reply) => {
-		const trainers = await getAllTrainers()
-		return reply.status(200).send({ trainers })
-	})
+	// Публичный эндпоинт с опциональной авторизацией - просмотр всех тренеров
+	// Для авторизованного клиента возвращает также статусы приглашений
+	app.get(
+		'/all',
+		{
+			preValidation: async (req) => {
+				try {
+					await authGuard(req)
+				} catch {
+					// Игнорируем ошибки авторизации - эндпоинт публичный
+				}
+			},
+		},
+		async (req, reply) => {
+			// Если пользователь авторизован и это клиент - передаем его ID
+			const clientId = req.user?.role === 'CLIENT' ? req.user.id : undefined
+			const trainers = await getAllTrainers(clientId)
+			return reply.status(200).send({ trainers })
+		}
+	)
 
 	// Получение приглашений для тренера (должен быть ДО /:id чтобы не конфликтовать)
 	app.get(

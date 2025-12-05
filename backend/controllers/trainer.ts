@@ -2,10 +2,12 @@ import { prisma } from '../prisma.js'
 
 /**
  * Получение всех тренеров для публичного просмотра
- * @returns Список тренеров с базовой информацией
+ * Если передан clientId - возвращает также статусы приглашений
+ * @param clientId - ID клиента (опционально, для получения статусов приглашений)
+ * @returns Список тренеров с базовой информацией и статусами приглашений
  */
-export async function getAllTrainers() {
-	return await prisma.user.findMany({
+export async function getAllTrainers(clientId?: string) {
+	const trainers = await prisma.user.findMany({
 		where: { role: 'TRAINER' },
 		select: {
 			id: true,
@@ -18,6 +20,31 @@ export async function getAllTrainers() {
 		},
 		orderBy: { name: 'asc' },
 	})
+
+	// Если клиент не авторизован - возвращаем просто список тренеров
+	if (!clientId) {
+		return trainers
+	}
+
+	// Получаем все приглашения этого клиента
+	const clientInvites = await prisma.trainerClient.findMany({
+		where: { clientId },
+		select: {
+			trainerId: true,
+			status: true,
+		},
+	})
+
+	// Создаём карту статусов по trainerId
+	const inviteStatusMap = new Map(
+		clientInvites.map((inv) => [inv.trainerId, inv.status])
+	)
+
+	// Добавляем статусы к каждому тренеру
+	return trainers.map((trainer) => ({
+		...trainer,
+		inviteStatus: inviteStatusMap.get(trainer.id) || null,
+	}))
 }
 
 /**
