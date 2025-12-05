@@ -39,23 +39,14 @@ export async function getClientNutritionPlan(req: FastifyRequest, reply: Fastify
 export async function createNutritionCategory(req: FastifyRequest, reply: FastifyReply) {
 	const { name, description } = req.body as { name: string; description?: string }
 
-	try {
-		const category = await prisma.nutritionCategory.create({
-			data: {
-				name,
-				description,
-				trainerId: req.user.id,
-			},
-		})
-		return reply.status(201).send(category)
-	} catch (error: any) {
-		if (error.code === 'P2002') {
-			return reply
-				.status(409)
-				.send({ error: 'Категория с таким названием уже существует' })
-		}
-		return reply.status(500).send({ error: 'Ошибка создания категории' })
-	}
+	const category = await prisma.nutritionCategory.create({
+		data: {
+			name,
+			description,
+			trainerId: req.user.id,
+		},
+	})
+	return reply.status(201).send(category)
 }
 
 export async function getTrainerNutritionCategories(
@@ -76,55 +67,39 @@ export async function updateNutritionCategory(req: FastifyRequest, reply: Fastif
 	const { id } = req.params as { id: string }
 	const { name, description } = req.body as Partial<{ name: string; description: string }>
 
-	try {
-		const category = await prisma.nutritionCategory.updateMany({
-			where: {
-				id,
-				trainerId: req.user.id,
-			},
-			data: { name, description },
-		})
+	const category = await prisma.nutritionCategory.updateMany({
+		where: {
+			id,
+			trainerId: req.user.id,
+		},
+		data: { name, description },
+	})
 
-		if (category.count === 0) {
-			return reply
-				.status(404)
-				.send({ error: 'Категория не найдена или нет прав доступа' })
-		}
-
-		const updated = await prisma.nutritionCategory.findUnique({ where: { id } })
-		return reply.status(200).send(updated)
-	} catch (error: any) {
-		if (error.code === 'P2002') {
-			return reply
-				.status(409)
-				.send({ error: 'Категория с таким названием уже существует' })
-		}
-		return reply.status(500).send({ error: 'Ошибка обновления категории' })
+	if (category.count === 0) {
+		return reply.status(404).send({ error: 'Категория не найдена или нет прав доступа' })
 	}
+
+	const updated = await prisma.nutritionCategory.findUnique({ where: { id } })
+	return reply.status(200).send(updated)
 }
 
 export async function deleteNutritionCategory(req: FastifyRequest, reply: FastifyReply) {
 	const { id } = req.params as { id: string }
 
-	try {
-		const deleted = await prisma.nutritionCategory.deleteMany({
-			where: {
-				id,
-				trainerId: req.user.id,
-			},
-		})
+	const deleted = await prisma.nutritionCategory.deleteMany({
+		where: {
+			id,
+			trainerId: req.user.id,
+		},
+	})
 
-		if (deleted.count === 0) {
-			return reply
-				.status(404)
-				.send({ error: 'Категория не найдена или нет прав доступа' })
-		}
-
-		return reply.status(204).send()
-	} catch (error: any) {
-		return reply.status(500).send({ error: 'Ошибка удаления категории' })
+	if (deleted.count === 0) {
+		return reply.status(404).send({ error: 'Категория не найдена или нет прав доступа' })
 	}
+
+	return reply.status(204).send()
 }
+
 // =============================================
 //  Подкатегории
 // =============================================
@@ -136,38 +111,27 @@ export async function createNutritionSubcategory(
 	const { id: categoryId } = req.params as { id: string }
 	const { name, description } = req.body as { name: string; description?: string }
 
-	try {
-		// Проверяем, что категория существует и принадлежит тренеру
-		const category = await prisma.nutritionCategory.findFirst({
-			where: {
-				id: categoryId,
-				trainerId: req.user.id,
-			},
-		})
+	// Проверяем, что категория существует и принадлежит тренеру
+	const category = await prisma.nutritionCategory.findFirst({
+		where: {
+			id: categoryId,
+			trainerId: req.user.id,
+		},
+	})
 
-		if (!category) {
-			return reply
-				.status(404)
-				.send({ error: 'Категория не найдена или нет прав доступа' })
-		}
-
-		const subcategory = await prisma.nutritionSubcategory.create({
-			data: {
-				name,
-				description,
-				categoryId,
-			},
-		})
-
-		return reply.status(201).send(subcategory)
-	} catch (error: any) {
-		if (error.code === 'P2002') {
-			return reply
-				.status(409)
-				.send({ error: 'Подкатегория с таким названием уже существует' })
-		}
-		return reply.status(500).send({ error: 'Ошибка создания подкатегории' })
+	if (!category) {
+		return reply.status(404).send({ error: 'Категория не найдена или нет прав доступа' })
 	}
+
+	const subcategory = await prisma.nutritionSubcategory.create({
+		data: {
+			name,
+			description,
+			categoryId,
+		},
+	})
+
+	return reply.status(201).send(subcategory)
 }
 
 export async function getNutritionSubcategories(
@@ -191,36 +155,24 @@ export async function updateNutritionSubcategory(
 	const { id } = req.params as { id: string }
 	const { name, description } = req.body as Partial<{ name: string; description: string }>
 
-	try {
-		// Проверяем права доступа через категорию
-		const subcategory = await prisma.nutritionSubcategory.findUnique({
-			where: { id },
-			include: { category: true },
-		})
+	// Проверяем права доступа через категорию
+	const subcategory = await prisma.nutritionSubcategory.findUnique({
+		where: { id },
+		include: { category: true },
+	})
 
-		if (!subcategory || subcategory.category.trainerId !== req.user.id) {
-			return reply
-				.status(404)
-				.send({ error: 'Подкатегория не найдена или нет прав доступа' })
-		}
-
-		const updated = await prisma.nutritionSubcategory.update({
-			where: { id },
-			data: { name, description },
-		})
-
-		return reply.status(200).send(updated)
-	} catch (error: any) {
-		if (error.code === 'P2002') {
-			return reply
-				.status(409)
-				.send({ error: 'Подкатегория с таким названием уже существует' })
-		}
-		if (error.code === 'P2025') {
-			return reply.status(404).send({ error: 'Подкатегория не найдена' })
-		}
-		return reply.status(500).send({ error: 'Ошибка обновления подкатегории' })
+	if (!subcategory || subcategory.category.trainerId !== req.user.id) {
+		return reply
+			.status(404)
+			.send({ error: 'Подкатегория не найдена или нет прав доступа' })
 	}
+
+	const updated = await prisma.nutritionSubcategory.update({
+		where: { id },
+		data: { name, description },
+	})
+
+	return reply.status(200).send(updated)
 }
 
 export async function deleteNutritionSubcategory(
@@ -229,26 +181,19 @@ export async function deleteNutritionSubcategory(
 ) {
 	const { id } = req.params as { id: string }
 
-	try {
-		// Проверяем права доступа через категорию
-		const subcategory = await prisma.nutritionSubcategory.findUnique({
-			where: { id },
-			include: { category: true },
-		})
+	// Проверяем права доступа через категорию
+	const subcategory = await prisma.nutritionSubcategory.findUnique({
+		where: { id },
+		include: { category: true },
+	})
 
-		if (!subcategory || subcategory.category.trainerId !== req.user.id) {
-			return reply
-				.status(404)
-				.send({ error: 'Подкатегория не найдена или нет прав доступа' })
-		}
-
-		await prisma.nutritionSubcategory.delete({ where: { id } })
-
-		return reply.status(204).send()
-	} catch (error: any) {
-		if (error.code === 'P2025') {
-			return reply.status(404).send({ error: 'Подкатегория не найдена' })
-		}
-		return reply.status(500).send({ error: 'Ошибка удаления подкатегории' })
+	if (!subcategory || subcategory.category.trainerId !== req.user.id) {
+		return reply
+			.status(404)
+			.send({ error: 'Подкатегория не найдена или нет прав доступа' })
 	}
+
+	await prisma.nutritionSubcategory.delete({ where: { id } })
+
+	return reply.status(204).send()
 }
