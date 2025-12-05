@@ -10,6 +10,36 @@ import {
 } from '@reduxjs/toolkit/query/react'
 import { API_ENDPOINTS } from '../../config/api.config'
 
+// Типы для приглашений
+export interface InviteClient {
+	id: string
+	name: string
+	photo: string | null
+	age: number
+	goal: string | null
+}
+
+export interface TrainerInvite {
+	id: string
+	status: 'PENDING' | 'ACCEPTED' | 'REJECTED'
+	createdAt: string
+	client: InviteClient
+}
+
+export interface AcceptInviteResponse {
+	message: string
+	client: {
+		id: string
+		name: string
+		photo: string | null
+		isFavorite: boolean
+	}
+}
+
+export interface RejectInviteResponse {
+	message: string
+}
+
 const rawBaseQuery = fetchBaseQuery({
 	baseUrl: API_ENDPOINTS.trainer,
 	credentials: 'include',
@@ -56,8 +86,9 @@ export const baseQueryWithReauth: BaseQueryFn<
 export const trainerApi = createApi({
 	reducerPath: 'trainerApi',
 	baseQuery: baseQueryWithReauth,
-	tagTypes: ['Clients', 'Client'],
+	tagTypes: ['Clients', 'Client', 'Invites'],
 	endpoints: (builder) => ({
+		// Получить клиентов тренера (только ACCEPTED)
 		getClients: builder.query<
 			Array<{
 				id: string
@@ -70,8 +101,19 @@ export const trainerApi = createApi({
 			void
 		>({
 			query: () => '/clients',
-			transformResponse: (resp: { clients: AuthUser[] }) => {
-				return resp.clients.map((client) => ({
+			transformResponse: (resp: { clients: AuthUser[] } | AuthUser[]) => {
+				// Логируем для отладки
+				console.log('getClients response:', resp)
+				
+				// Обрабатываем разные форматы ответа
+				const clients = Array.isArray(resp) ? resp : (resp?.clients || [])
+				
+				if (!Array.isArray(clients)) {
+					console.error('Unexpected clients format:', clients)
+					return []
+				}
+				
+				return clients.map((client) => ({
 					id: client.id,
 					name: client.name,
 					avatarUrl: client.photo || undefined,
@@ -83,10 +125,35 @@ export const trainerApi = createApi({
 			providesTags: ['Clients'],
 		}),
 
+		// Получить приглашения (PENDING)
+		getInvites: builder.query<{ invites: TrainerInvite[] }, { status?: string }>({
+			query: ({ status = 'PENDING' }) => `/invites?status=${status}`,
+			providesTags: ['Invites'],
+		}),
+
+		// Принять приглашение
+		acceptInvite: builder.mutation<AcceptInviteResponse, { inviteId: string }>({
+			query: ({ inviteId }) => ({
+				url: `/invites/${inviteId}/accept`,
+				method: 'POST',
+			}),
+			invalidatesTags: ['Invites', 'Clients'],
+		}),
+
+		// Отклонить приглашение
+		rejectInvite: builder.mutation<RejectInviteResponse, { inviteId: string }>({
+			query: ({ inviteId }) => ({
+				url: `/invites/${inviteId}/reject`,
+				method: 'POST',
+			}),
+			invalidatesTags: ['Invites'],
+		}),
+
+		// Переключить избранное
 		toggleClientStar: builder.mutation<{ isFavorite: boolean }, { clientId: string }>({
 			query: ({ clientId }) => ({
 				url: `/clients/${clientId}/favorite`,
-				method: 'PATCH',
+				method: 'PUT',
 			}),
 			invalidatesTags: ['Clients'],
 		}),
@@ -143,6 +210,9 @@ export const trainerApi = createApi({
 
 export const {
 	useGetClientsQuery,
+	useGetInvitesQuery,
+	useAcceptInviteMutation,
+	useRejectInviteMutation,
 	useToggleClientStarMutation,
 	useGetClientProfileQuery,
 	useGetClientProgressQuery,

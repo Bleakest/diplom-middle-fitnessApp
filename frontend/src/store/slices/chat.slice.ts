@@ -80,10 +80,17 @@ export const chatSlice = createSlice({
 			delete state.unreadCount[chatId]
 			saveToStorage(state)
 		},
+
+		// Полный сброс всех чатов (при logout)
+		resetAllChats: (state) => {
+			state.messages = {}
+			state.unreadCount = {}
+			localStorage.removeItem('chat_state')
+		},
 	},
 })
 
-export const { addMessage, setMessages, incrementUnread, markAsRead, clearChat } =
+export const { addMessage, setMessages, incrementUnread, markAsRead, clearChat, resetAllChats } =
 	chatSlice.actions
 
 export default chatSlice.reducer

@@ -2,6 +2,7 @@ import { Typography, Button } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Chat } from '../../components/Chat'
+import { useGetClientsQuery } from '../../store/api/trainer.api'
 
 const { Title } = Typography
 
@@ -9,9 +10,10 @@ export const ChatWithClient = () => {
 	const { id } = useParams<{ id: string }>()
 	const navigate = useNavigate()
 
-	// В будущем здесь будет запрос на получение имени клиента по ID
-	// const { data: client } = useGetClientQuery(id)
-	const clientName = `Клиент #${id?.slice(-4) || ''}` // Временное имя
+	// Загружаем список клиентов тренера и ищем имя по id
+	const { data: clients = [] } = useGetClientsQuery()
+	const client = clients.find((c) => c.id === id)
+	const clientName = client?.name || `Клиент #${id?.slice(-4) || ''}`
 
 	return (
 		<div className='page-container gradient-bg'>
