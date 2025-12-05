@@ -265,3 +265,42 @@ export async function acceptInvite(trainerId: string, inviteId: string) {
 		isFavorite: invite.isFavorite,
 	}
 }
+
+/**
+ * Отклонение приглашения от клиента
+ * @param trainerId - ID тренера
+ * @param inviteId - ID приглашения
+ * @returns Подтверждение отклонения
+ */
+export async function rejectInvite(trainerId: string, inviteId: string) {
+	const { ApiError } = await import('../utils/ApiError.js')
+
+	// 1. Проверяем, что приглашение существует и в статусе PENDING
+	const invite = await prisma.trainerClient.findUnique({
+		where: { id: inviteId },
+	})
+
+	if (!invite) {
+		throw ApiError.notFound('Приглашение не найдено')
+	}
+
+	if (invite.trainerId !== trainerId) {
+		throw ApiError.forbidden('Это приглашение предназначено другому тренеру')
+	}
+
+	if (invite.status !== 'PENDING') {
+		throw ApiError.badRequest('Приглашение уже обработано')
+	}
+
+	// 2. Отклоняем приглашение
+	await prisma.trainerClient.update({
+		where: { id: inviteId },
+		data: {
+			status: 'REJECTED',
+		},
+	})
+
+	return {
+		message: 'Приглашение отклонено',
+	}
+}
