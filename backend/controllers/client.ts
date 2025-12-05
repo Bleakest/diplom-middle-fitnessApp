@@ -77,3 +77,77 @@ export async function inviteTrainer(clientId: string, trainerId: string) {
 
 	return invite
 }
+
+/**
+ * Отмена сотрудничества с тренером
+ * @param clientId - ID клиента
+ * @returns Сообщение об успешной отмене
+ */
+export async function cancelTrainerCooperation(clientId: string) {
+	// 1. Находим активное сотрудничество с тренером
+	const activeRelation = await prisma.trainerClient.findFirst({
+		where: {
+			clientId,
+			status: 'ACCEPTED',
+		},
+		include: {
+			trainer: {
+				select: {
+					id: true,
+					name: true,
+				},
+			},
+		},
+	})
+
+	if (!activeRelation) {
+		throw ApiError.notFound('У вас нет активного тренера')
+	}
+
+	const trainerId = activeRelation.trainerId
+
+	// 2. Находим все планы питания, назначенные этим тренером
+	// Через цепочку: ClientNutritionPlan -> NutritionSubcategory -> NutritionCategory -> trainer
+	const nutritionPlansToDelete = await prisma.clientNutritionPlan.findMany({
+		where: {
+			clientId,
+			subcategory: {
+				category: {
+					trainerId,
+				},
+			},
+		},
+		select: {
+			id: true,
+		},
+	})
+
+	const planIds = nutritionPlansToDelete.map((plan) => plan.id)
+
+	// 3. Удаляем связь с тренером и планы питания в транзакции
+	await prisma.$transaction([
+		// Удаляем связь с тренером
+		prisma.trainerClient.delete({
+			where: {
+				id: activeRelation.id,
+			},
+		}),
+		// Удаляем все планы питания от этого тренера
+		...(planIds.length > 0
+			? [
+					prisma.clientNutritionPlan.deleteMany({
+						where: {
+							id: {
+								in: planIds,
+							},
+						},
+					}),
+			  ]
+			: []),
+	])
+
+	return {
+		message: `Сотрудничество с тренером "${activeRelation.trainer.name}" успешно отменено`,
+		deletedNutritionPlans: planIds.length,
+	}
+}

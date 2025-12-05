@@ -1,5 +1,5 @@
 import { editClientProfile, editTrainerProfile, getUser } from '../controllers/user.js'
-import { inviteTrainer } from '../controllers/client.js'
+import { inviteTrainer, cancelTrainerCooperation } from '../controllers/client.js'
 import { FastifyInstance } from 'fastify'
 import multipart from '@fastify/multipart'
 
@@ -117,6 +117,17 @@ export default async function userRoutes(app: FastifyInstance) {
 				message: 'Приглашение отправлено тренеру',
 				invite,
 			})
+		},
+	)
+
+	// Отмена сотрудничества с тренером (только для клиентов)
+	app.delete(
+		'/client/trainer',
+		{ preHandler: [authGuard, hasRole(['CLIENT'])] },
+		async (req, reply) => {
+			const result = await cancelTrainerCooperation(req.user.id)
+
+			return reply.status(200).send(result)
 		},
 	)
 }
