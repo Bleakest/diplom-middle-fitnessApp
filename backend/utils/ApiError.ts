@@ -26,6 +26,11 @@ export class ApiError extends Error {
 		return new ApiError(msg, 404)
 	}
 
+	// Конфликт (409)
+	static conflict(msg: string) {
+		return new ApiError(msg, 409)
+	}
+
 	// Внутренняя ошибка сервера
 	static internal(msg: string) {
 		return new ApiError(msg, 500)
