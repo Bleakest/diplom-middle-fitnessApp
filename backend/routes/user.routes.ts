@@ -46,7 +46,7 @@ export default async function userRoutes(app: FastifyInstance) {
 			if (req.isMultipart()) {
 				// Обрабатываем загрузку файлов (только основное фото профиля, макс. 500KB)
 				const { uploadPhotos } = await import('../utils/uploadPhotos.js')
-				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024)
+				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024, 'users')
 				body = uploadResult.body
 				filesMap = uploadResult.files
 
@@ -83,7 +83,7 @@ export default async function userRoutes(app: FastifyInstance) {
 			if (req.isMultipart()) {
 				// Обрабатываем загрузку файлов (только основное фото профиля, макс. 500KB)
 				const { uploadPhotos } = await import('../utils/uploadPhotos.js')
-				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024)
+				const uploadResult = await uploadPhotos(req, ['photo'], 500 * 1024, 'users')
 				body = uploadResult.body
 				filesMap = uploadResult.files
 
