@@ -22,9 +22,6 @@ export default async function nutritionRoutes(app: FastifyInstance) {
 		'/client/plan',
 		{
 			preHandler: [authGuard, hasRole(['CLIENT'])],
-			schema: {
-				querystring: GetClientNutritionPlanQuerySchema,
-			},
 		},
 		getClientNutritionPlan,
 	)
@@ -34,9 +31,6 @@ export default async function nutritionRoutes(app: FastifyInstance) {
 		'/client/history',
 		{
 			preHandler: [authGuard, hasRole(['CLIENT'])],
-			schema: {
-				querystring: GetNutritionHistoryQuerySchema,
-			},
 		},
 		getClientNutritionHistory,
 	)

@@ -51,6 +51,7 @@ export default async function progressRoutes(app: FastifyInstance) {
 				req,
 				['photoFront', 'photoSide', 'photoBack'],
 				MAX_PHOTO_SIZE,
+				'progress', // Сохраняем фото прогресса в отдельную подпапку
 			)
 
 			const { body, files: filesMap } = uploadResult

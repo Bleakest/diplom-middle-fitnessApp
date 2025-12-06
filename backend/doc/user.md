@@ -4,6 +4,12 @@ API для управления профилями пользователей (�
 
 **Base URL:** `/api/user`
 
+**Структура загрузки фото:**
+
+- Аватарки пользователей сохраняются в `uploads/photos/users/`
+- Максимальный размер: 500KB
+- Поддерживаемые форматы: JPG, PNG, WebP
+
 ---
 
 ## Оглавление
@@ -192,7 +198,7 @@ Authorization: Bearer <access_token>
 
 Обновляет данные профиля клиента.
 
-**Endpoint:** `PUT /api/user/client/profile`
+**Endpoint:** `PATCH /api/user/client`
 
 **Права доступа:** `CLIENT`
 
@@ -223,7 +229,7 @@ Authorization: Bearer <access_token>
 **Обновление с фото (multipart/form-data):**
 
 ```bash
-curl -X PUT http://localhost:3000/api/user/client/profile \
+curl -X PATCH http://localhost:3000/api/user/client \
   -H "Authorization: Bearer <access_token>" \
   -F "name=Иван Петров Обновленный" \
   -F "age=26" \
@@ -282,7 +288,7 @@ curl -X PUT http://localhost:3000/api/user/client/profile \
 
 Обновляет данные профиля тренера.
 
-**Endpoint:** `PUT /api/user/trainer/profile`
+**Endpoint:** `PATCH /api/user/trainer`
 
 **Права доступа:** `TRAINER`
 
@@ -313,7 +319,7 @@ Authorization: Bearer <access_token>
 **Обновление с фото (multipart/form-data):**
 
 ```bash
-curl -X PUT http://localhost:3000/api/user/trainer/profile \
+curl -X PATCH http://localhost:3000/api/user/trainer \
   -H "Authorization: Bearer <access_token>" \
   -F "name=Алексей Смирнов" \
   -F "bio=Сертифицированный тренер с 12-летним опытом" \
