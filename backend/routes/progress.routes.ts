@@ -7,6 +7,7 @@ import { hasRole } from '../middleware/hasRole.js'
 import { CreateProgressSchema } from '../validation/zod/progress/progress.dto.js'
 import { CreateCommentSchema } from '../validation/zod/progress/comment.dto.js'
 import { GetProgressCommentsQuerySchema } from '../validation/zod/progress/get-comments.dto.js'
+import { GetAnalyticsQuerySchema } from '../validation/zod/progress/analytics.dto.js'
 import { MAX_PHOTO_SIZE } from '../consts/file.js'
 import { cleanupFilesOnError, attachFilesToRequest } from '../utils/uploadPhotos.js'
 
@@ -90,6 +91,48 @@ export default async function progressRoutes(app: FastifyInstance) {
 				message: 'Отчет о прогрессе успешно создан',
 				progress,
 			})
+		},
+	)
+
+	// Получение аналитики прогресса для графиков
+	app.get(
+		'/analytics',
+		{ preHandler: [authGuard, hasRole(['CLIENT', 'TRAINER'])] },
+		async (req, reply) => {
+			const { getProgressAnalytics } = await import('../controllers/progress.js')
+			const { ApiError } = await import('../utils/ApiError.js')
+
+			// Валидация query параметров
+			const validation = GetAnalyticsQuerySchema.safeParse(req.query)
+
+			if (!validation.success) {
+				const firstError = validation.error.issues[0]
+				throw ApiError.badRequest(firstError.message)
+			}
+
+			const { period, metrics, startDate, endDate } = validation.data
+
+			// Для клиента - получаем его данные, для тренера - нужно указать clientId в query
+			let userId = req.user.id
+			if (req.user.role === 'TRAINER') {
+				// Тренер должен указать clientId в query параметрах
+				const { clientId } = req.query as { clientId?: string }
+				if (!clientId) {
+					throw ApiError.badRequest('Тренер должен указать clientId в query параметрах')
+				}
+				userId = clientId
+			}
+
+			// Получение аналитики
+			const analytics = await getProgressAnalytics(
+				userId,
+				period,
+				metrics,
+				startDate,
+				endDate,
+			)
+
+			return reply.status(200).send(analytics)
 		},
 	)
 

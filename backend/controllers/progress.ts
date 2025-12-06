@@ -281,3 +281,128 @@ export async function getProgressComments(
 		},
 	}
 }
+
+/**
+ * Получение данных аналитики прогресса для графиков
+ * @param userId - ID пользователя
+ * @param period - Период: 'month', 'year' или 'custom'
+ * @param metrics - Массив метрик для анализа
+ * @param startDate - Дата начала (обязательна для custom)
+ * @param endDate - Дата окончания (обязательна для custom)
+ * @returns Агрегированные данные по выбранным метрикам
+ */
+export async function getProgressAnalytics(
+	userId: string,
+	period: 'month' | 'year' | 'custom',
+	metrics: string[],
+	startDate?: string,
+	endDate?: string,
+) {
+	const { ApiError } = await import('../utils/ApiError.js')
+
+	// Определяем диапазон дат в зависимости от периода
+	let dateFrom: Date
+	let dateTo: Date = new Date()
+
+	if (period === 'custom') {
+		if (!startDate || !endDate) {
+			throw ApiError.badRequest(
+				'Для периода custom необходимо указать startDate и endDate',
+			)
+		}
+		dateFrom = parseDateString(startDate)
+		dateTo = parseDateString(endDate)
+		// Устанавливаем конец дня для dateTo
+		dateTo.setHours(23, 59, 59, 999)
+	} else if (period === 'month') {
+		dateFrom = new Date()
+		dateFrom.setMonth(dateFrom.getMonth() - 1)
+		dateFrom.setHours(0, 0, 0, 0)
+	} else if (period === 'year') {
+		dateFrom = new Date()
+		dateFrom.setFullYear(dateFrom.getFullYear() - 1)
+		dateFrom.setHours(0, 0, 0, 0)
+	} else {
+		throw ApiError.badRequest('Неизвестный период')
+	}
+
+	// Получаем все отчеты за период
+	const progressReports = await prisma.progress.findMany({
+		where: {
+			userId,
+			date: {
+				gte: dateFrom,
+				lte: dateTo,
+			},
+		},
+		orderBy: { date: 'asc' },
+		select: {
+			id: true,
+			date: true,
+			weight: true,
+			height: true,
+			chest: true,
+			waist: true,
+			hips: true,
+			arm: true,
+			leg: true,
+		},
+	})
+
+	// Формируем данные для графиков
+	interface ChartDataPoint {
+		date: string
+		value: number | null
+	}
+
+	interface MetricData {
+		metric: string
+		data: ChartDataPoint[]
+		min: number | null
+		max: number | null
+		avg: number | null
+		change: number | null // Изменение от первого до последнего значения
+	}
+
+	const analyticsData: MetricData[] = metrics.map((metric) => {
+		const dataPoints: ChartDataPoint[] = progressReports.map((report) => ({
+			date: report.date.toISOString().split('T')[0], // YYYY-MM-DD
+			value: report[metric as keyof typeof report] as number | null,
+		}))
+
+		// Фильтруем только не-null значения для расчета статистики
+		const validValues = dataPoints
+			.map((dp) => dp.value)
+			.filter((v): v is number => v !== null)
+
+		const min = validValues.length > 0 ? Math.min(...validValues) : null
+		const max = validValues.length > 0 ? Math.max(...validValues) : null
+		const avg =
+			validValues.length > 0
+				? validValues.reduce((sum, val) => sum + val, 0) / validValues.length
+				: null
+
+		// Вычисляем изменение (разница между первым и последним)
+		const firstValue = validValues[0]
+		const lastValue = validValues[validValues.length - 1]
+		const change = firstValue && lastValue ? lastValue - firstValue : null
+
+		return {
+			metric,
+			data: dataPoints,
+			min: min !== null ? Math.round(min * 10) / 10 : null,
+			max: max !== null ? Math.round(max * 10) / 10 : null,
+			avg: avg !== null ? Math.round(avg * 10) / 10 : null,
+			change: change !== null ? Math.round(change * 10) / 10 : null,
+		}
+	})
+
+	return {
+		period,
+		dateRange: {
+			from: dateFrom.toISOString().split('T')[0],
+			to: dateTo.toISOString().split('T')[0],
+		},
+		metrics: analyticsData,
+	}
+}
