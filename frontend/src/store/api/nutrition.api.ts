@@ -16,7 +16,7 @@ import { API_ENDPOINTS } from '../../config/api.config'
 const rawBaseQuery = fetchBaseQuery({
 	baseUrl: API_ENDPOINTS.base,
 	credentials: 'include',
-	prepareHeaders: (headers, { endpoint, type }) => {
+	prepareHeaders: (headers) => {
 		const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 		if (token) {
 			headers.set('authorization', `Bearer ${token}`)
@@ -155,8 +155,8 @@ export const nutritionApi = createApi({
 		}),
 
 		// === ДНИ ===
-		getProgramDays: builder.query<NutritionDay[], string>({
-			query: (programId) => `/programs/${programId}/days`,
+		getSubcategoryDays: builder.query<NutritionDay[], string>({
+			query: (subcategoryId) => `/nutrition/subcategories/${subcategoryId}/days`,
 			providesTags: ['Day'],
 		}),
 
@@ -196,14 +196,14 @@ export const nutritionApi = createApi({
 			AssignedNutritionPlan,
 			{
 				clientId: string
-				programId: string
-				dayIds: string[]
+				subcategoryId: string
+				dayIds?: string[]
 			}
 		>({
-			query: (assignment) => ({
-				url: `/clients/${assignment.clientId}/assign`,
+			query: ({ clientId, subcategoryId, dayIds }) => ({
+				url: `/trainer/clients/${clientId}/nutrition`,
 				method: 'POST',
-				body: assignment,
+				body: { subcategoryId, dayIds },
 			}),
 			invalidatesTags: ['AssignedPlan'],
 		}),
@@ -221,11 +221,13 @@ export const {
 	useCreateSubcategoryMutation,
 	useUpdateSubcategoryMutation,
 	useDeleteSubcategoryMutation,
-	//дни (пока не правила, не работает)
+	//дни
+	useGetSubcategoryDaysQuery,
 	useGetDayQuery,
 	useCreateDayMutation,
 	useUpdateDayMutation,
 	useDeleteDayMutation,
+	// назначение планов
 	useAssignNutritionPlanMutation,
 	useGetClientNutritionPlanQuery,
 } = nutritionApi
