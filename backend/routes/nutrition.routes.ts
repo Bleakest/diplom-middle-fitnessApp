@@ -12,6 +12,7 @@ import {
 	getNutritionSubcategories,
 	updateNutritionSubcategory,
 	deleteNutritionSubcategory,
+	getSubcategoryDays,
 } from '../controllers/nutrition.js'
 import { GetClientNutritionPlanQuerySchema } from '../validation/zod/nutrition/get-client-plan.dto.js'
 import { GetNutritionHistoryQuerySchema } from '../validation/zod/nutrition/get-history.dto.js'
@@ -85,5 +86,12 @@ export default async function nutritionRoutes(app: FastifyInstance) {
 		'/subcategories/:id',
 		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
 		deleteNutritionSubcategory,
+	)
+
+	// Получение дней подкатегории с meals (TRAINER)
+	app.get(
+		'/subcategories/:id/days',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		getSubcategoryDays,
 	)
 }

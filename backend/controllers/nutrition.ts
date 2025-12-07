@@ -359,3 +359,37 @@ export async function deleteNutritionSubcategory(
 
 	return reply.status(204).send()
 }
+
+// =============================================
+//  Дни подкатегории (для тренера)
+// =============================================
+
+export async function getSubcategoryDays(
+	req: FastifyRequest,
+	reply: FastifyReply,
+) {
+	const { id: subcategoryId } = req.params as { id: string }
+
+	// Проверяем права доступа через категорию
+	const subcategory = await prisma.nutritionSubcategory.findUnique({
+		where: { id: subcategoryId },
+		include: { category: true },
+	})
+
+	if (!subcategory || subcategory.category.trainerId !== req.user.id) {
+		throw ApiError.notFound('Подкатегория не найдена или нет прав доступа')
+	}
+
+	// Получаем дни с meals
+	const days = await prisma.nutritionDay.findMany({
+		where: { subcatId: subcategoryId },
+		orderBy: { dayOrder: 'asc' },
+		include: {
+			meals: {
+				orderBy: { mealOrder: 'asc' },
+			},
+		},
+	})
+
+	return reply.status(200).send(days)
+}
