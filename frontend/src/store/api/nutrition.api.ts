@@ -3,6 +3,8 @@ import type {
 	NutritionSubcategory,
 	NutritionDay,
 	AssignedNutritionPlan,
+	NutritionDayInput,
+	NutritionDayUpdate,
 } from '../types/nutrition.types'
 import {
 	createApi,
@@ -16,24 +18,11 @@ import { API_ENDPOINTS } from '../../config/api.config'
 const rawBaseQuery = fetchBaseQuery({
 	baseUrl: API_ENDPOINTS.base,
 	credentials: 'include',
-	prepareHeaders: (headers, { endpoint, type }) => {
+	prepareHeaders: (headers) => {
 		const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
 		if (token) {
 			headers.set('authorization', `Bearer ${token}`)
 		}
-
-		// const isFormDataEndpoint = [
-		// 	'updateClientProfileWithPhoto',
-		// 	'updateTrainerProfileWithPhoto',
-		// ].includes(endpoint)
-
-		// const isJsonMutation =
-		// 	!isFormDataEndpoint && type === 'mutation' && !endpoint.includes('WithPhoto')
-
-		// if (isJsonMutation) {
-		// 	headers.set('Content-Type', 'application/json')
-		// }
-
 		return headers
 	},
 })
@@ -48,7 +37,7 @@ export const baseQueryWithReauth: BaseQueryFn<
 	if (result.error && result.error.status === 401) {
 		const refreshResult = await rawBaseQuery(
 			{
-				url: '/../auth/refresh',
+				url: '/auth/refresh',
 				method: 'POST',
 				credentials: 'include',
 			},
@@ -116,7 +105,7 @@ export const nutritionApi = createApi({
 			invalidatesTags: ['Category'],
 		}),
 
-		// === ПРОГРАММЫ ===
+		// === ПОДКАТЕГОРИИ ===
 		getSubcategories: builder.query<NutritionSubcategory[], string>({
 			query: (categoryId) => `/nutrition/categories/${categoryId}/subcategories`,
 			providesTags: ['Subcategory'],
@@ -124,12 +113,26 @@ export const nutritionApi = createApi({
 
 		createSubcategory: builder.mutation<
 			NutritionSubcategory,
-			{ categoryId: string; name: string; description?: string }
+			{
+				categoryId: string
+				name: string
+				description?: string
+				days?: Array<{
+					dayTitle: string
+					dayOrder: number
+					meals: Array<{
+						type: 'BREAKFAST' | 'SNACK' | 'LUNCH' | 'DINNER'
+						name: string
+						mealOrder: number
+						items: string[]
+					}>
+				}>
+			}
 		>({
-			query: ({ categoryId, ...subcategory }) => ({
+			query: ({ categoryId, ...data }) => ({
 				url: `/nutrition/categories/${categoryId}/subcategories`,
 				method: 'POST',
-				body: subcategory,
+				body: data,
 			}),
 			invalidatesTags: ['Subcategory', 'Category'],
 		}),
@@ -153,39 +156,49 @@ export const nutritionApi = createApi({
 			}),
 			invalidatesTags: ['Subcategory', 'Category'],
 		}),
+		getSubcategory: builder.query<NutritionSubcategory, string>({
+			query: (id) => `/nutrition/subcategories/${id}`,
+			providesTags: (result, error, id) => [{ type: 'Subcategory', id }],
+		}),
 
-		// === ДНИ ===
-		getProgramDays: builder.query<NutritionDay[], string>({
-			query: (programId) => `/programs/${programId}/days`,
+		//=== ДНИ ===
+		getDays: builder.query<NutritionDay[], string>({
+			query: (subcategoryId) => `/nutrition/subcategories/${subcategoryId}/days`,
 			providesTags: ['Day'],
 		}),
 
 		getDay: builder.query<NutritionDay, string>({
-			query: (dayId) => `/days/${dayId}`,
+			query: (dayId) => `/nutrition/days/${dayId}`,
 			providesTags: ['Day'],
 		}),
 
-		createDay: builder.mutation<NutritionDay, Omit<NutritionDay, 'id'>>({
-			query: (day) => ({
-				url: '/days',
+		createDay: builder.mutation<
+			NutritionDay,
+			NutritionDayInput & { subcategoryId: string }
+		>({
+			query: ({ subcategoryId, ...data }) => ({
+				url: `/nutrition/subcategories/${subcategoryId}/days`,
 				method: 'POST',
-				body: day,
+				body: data,
 			}),
 			invalidatesTags: ['Day'],
 		}),
 
-		updateDay: builder.mutation<NutritionDay, NutritionDay>({
-			query: (day) => ({
-				url: `/days/${day.id}`,
-				method: 'PUT',
-				body: day,
+		updateDay: builder.mutation<
+			NutritionDay,
+			{ id: string; updates: NutritionDayUpdate }
+		>({
+			query: ({ id, updates }) => ({
+				url: `/nutrition/days/${id}`,
+				method: 'PATCH',
+				body: updates,
 			}),
 			invalidatesTags: ['Day'],
 		}),
 
 		deleteDay: builder.mutation<void, string>({
-			query: (dayId) => ({
-				url: `/days/${dayId}`,
+			query: (id) => ({
+				url: `/nutrition/days/${id}`,
 				method: 'DELETE',
 			}),
 			invalidatesTags: ['Day'],
@@ -216,16 +229,18 @@ export const {
 	useCreateCategoryMutation,
 	useUpdateCategoryMutation,
 	useDeleteCategoryMutation,
-	//программы
+	//подкатегории
 	useGetSubcategoriesQuery,
 	useCreateSubcategoryMutation,
 	useUpdateSubcategoryMutation,
 	useDeleteSubcategoryMutation,
-	//дни (пока не правила, не работает)
-	useGetDayQuery,
+	useGetSubcategoryQuery,
+	//дни
+	useGetDaysQuery,
 	useCreateDayMutation,
 	useUpdateDayMutation,
 	useDeleteDayMutation,
+	//назначение планов
 	useAssignNutritionPlanMutation,
 	useGetClientNutritionPlanQuery,
 } = nutritionApi

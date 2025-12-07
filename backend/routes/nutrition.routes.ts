@@ -12,6 +12,12 @@ import {
 	getNutritionSubcategories,
 	updateNutritionSubcategory,
 	deleteNutritionSubcategory,
+	createNutritionDay,
+	getNutritionDays,
+	getNutritionDay,
+	updateNutritionDay,
+	deleteNutritionDay,
+	getNutritionSubcategory,
 } from '../controllers/nutrition.js'
 import { GetClientNutritionPlanQuerySchema } from '../validation/zod/nutrition/get-client-plan.dto.js'
 import { GetNutritionHistoryQuerySchema } from '../validation/zod/nutrition/get-history.dto.js'
@@ -75,6 +81,11 @@ export default async function nutritionRoutes(app: FastifyInstance) {
 		getNutritionSubcategories,
 	)
 
+	app.get(
+		'/subcategories/:id',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		getNutritionSubcategory,
+	)
 	app.put(
 		'/subcategories/:id',
 		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
@@ -85,5 +96,33 @@ export default async function nutritionRoutes(app: FastifyInstance) {
 		'/subcategories/:id',
 		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
 		deleteNutritionSubcategory,
+	)
+
+	// CRUD ДНЕЙ (TRAINER)
+
+	app.post(
+		'/subcategories/:id/days',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		createNutritionDay,
+	)
+
+	app.get(
+		'/subcategories/:id/days',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		getNutritionDays,
+	)
+
+	app.get('/days/:id', { preHandler: [authGuard, hasRole(['TRAINER'])] }, getNutritionDay)
+
+	app.patch(
+		'/days/:id',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		updateNutritionDay,
+	)
+
+	app.delete(
+		'/days/:id',
+		{ preHandler: [authGuard, hasRole(['TRAINER'])] },
+		deleteNutritionDay,
 	)
 }

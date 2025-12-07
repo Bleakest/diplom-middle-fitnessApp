@@ -7,7 +7,10 @@ import {
 	RightOutlined,
 	DeleteOutlined,
 } from '@ant-design/icons'
-import { useDeleteCategoryMutation } from '../../store/api/nutrition.api'
+import {
+	useDeleteCategoryMutation,
+	useDeleteSubcategoryMutation,
+} from '../../store/api/nutrition.api'
 
 interface NutritionCategoryCardProps {
 	category: NutritionCategory
@@ -22,12 +25,24 @@ export const NutritionCategoryCard = ({
 }: NutritionCategoryCardProps) => {
 	const navigate = useNavigate()
 	const hasSubcategories = category.subcategories && category.subcategories.length > 0
-	const [deleteCategory, { isLoading: isDeleting }] = useDeleteCategoryMutation()
+	const [deleteCategory, { isLoading: isDeletingCategory }] = useDeleteCategoryMutation()
+	const [deleteSubcategory, { isLoading: isDeletingSubcategory }] =
+		useDeleteSubcategoryMutation()
 
 	const { Meta } = Card
 
 	const getCategoryIcon = (categoryId: string) => {
 		return openedCategoryId === categoryId ? <DownOutlined /> : <RightOutlined />
+	}
+
+	const handleDeleteSubcategory = async (subcategoryId: string, e: React.MouseEvent) => {
+		e.stopPropagation()
+		try {
+			await deleteSubcategory(subcategoryId).unwrap()
+			message.success('Подкатегория удалена')
+		} catch (error: any) {
+			message.error(error?.data?.message || 'Ошибка при удалении')
+		}
 	}
 
 	const handleAddSubcategoryClick = (
@@ -47,10 +62,9 @@ export const NutritionCategoryCard = ({
 		navigate(`/admin/nutrition/${category.id}/${subcategory.id}`)
 	}
 
-	const handleDeleteClick = async (e: React.MouseEvent) => {
+	const handleDeleteCategory = async (e: React.MouseEvent) => {
 		e.stopPropagation()
 		e.preventDefault()
-		console.log('delete')
 		try {
 			await deleteCategory(category.id).unwrap()
 			message.success('Категория удалена')
@@ -76,9 +90,9 @@ export const NutritionCategoryCard = ({
 				type='text'
 				danger
 				size='small'
-				loading={isDeleting}
-				onClick={handleDeleteClick}
-				className='mb-2'
+				loading={isDeletingCategory}
+				onClick={handleDeleteCategory}
+				className='absolute top-0 right-2 z-10'
 				disabled={hasSubcategories}
 				title={
 					hasSubcategories ? 'Нельзя удалить не пустую категорию' : 'Удалить категорию'
@@ -114,10 +128,25 @@ export const NutritionCategoryCard = ({
 										{category.subcategories.map((subcategory) => (
 											<div
 												key={subcategory.id}
-												className='p-3 border border-muted rounded-lg hover:border-primary transition-colors cursor-pointer bg-white'
+												className='p-3 border border-muted rounded-lg hover:border-primary transition-colors cursor-pointer bg-white relative'
 												onClick={(e) => handleSubcategoryClick(category, subcategory, e)}
 											>
-												<div className='flex justify-between items-start mb-2'>
+												<Button
+													type='text'
+													danger
+													size='small'
+													loading={isDeletingSubcategory}
+													onClick={(e) => {
+														e.stopPropagation()
+														handleDeleteSubcategory(subcategory.id, e)
+													}}
+													className='absolute top-0 right-2 z-10'
+													title='Удалить подкатегорию'
+												>
+													<DeleteOutlined />
+												</Button>
+
+												<div className='flex justify-between items-start mb-2 pr-6'>
 													<span className='font-medium text-custom text-sm'>
 														{subcategory.name}
 													</span>
@@ -154,7 +183,7 @@ export const NutritionCategoryCard = ({
 											icon={<PlusOutlined />}
 											onClick={(e) => handleAddSubcategoryClick(category, e)}
 										>
-											Создать первую подкатегорию
+											Создать первую подкатегориу
 										</Button>
 									</div>
 								)}

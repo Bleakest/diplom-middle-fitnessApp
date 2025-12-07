@@ -24,6 +24,8 @@ export const NutritionTrainer = () => {
 		refetch: refetchCategories,
 	} = useGetCategoriesQuery()
 
+	console.log(categories)
+
 	const [createCategory, { isLoading: isCreatingCategory }] = useCreateCategoryMutation()
 
 	const showModal = () => {

@@ -13,7 +13,7 @@ export interface NutritionSubcategory {
 	categoryId: string
 	name: string
 	description?: string
-	days: NutritionDay[] // полный массив дней
+	days?: NutritionDay[] // полный массив дней
 	createdAt: string | Date
 	updatedAt: string | Date
 }
@@ -44,7 +44,33 @@ export type MealType = 'BREAKFAST' | 'SNACK' | 'LUNCH' | 'DINNER'
 export interface AssignedNutritionPlan {
 	id: string
 	clientId: string
-	subcatId: string // изменил programId → subcatId
+	subcatId: string
 	dayIds: string[]
 	createdAt: string | Date
+}
+
+export interface NutritionMealInput {
+	type: MealType
+	name: string
+	mealOrder: number
+	items: string[]
+}
+
+export interface NutritionDayInput {
+	dayTitle: string
+	dayOrder: number
+	meals: NutritionMealInput[]
+}
+
+export interface NutritionDayUpdate {
+	dayTitle?: string
+	dayOrder?: number
+	meals?: NutritionMealInput[]
+}
+
+export interface TempDay extends NutritionDayInput {
+	id: string
+	subcatId?: string
+	createdAt?: Date
+	updatedAt?: Date
 }

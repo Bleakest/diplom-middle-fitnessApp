@@ -1,16 +1,15 @@
-// DayCard.tsx
 import React from 'react'
 import { Card, Button, Typography } from 'antd'
 import { EditOutlined, DownOutlined, RightOutlined } from '@ant-design/icons'
-import type { ProgramDay } from '../../types/nutritions'
+import type { NutritionDay } from '../../types/nutritions'
 
 const { Title } = Typography
 
 interface DayCardProps {
-	day: ProgramDay
+	day: NutritionDay
 	openedDayId: string | null
 	onDayClick: (dayId: string) => void
-	onEditDay: (day: ProgramDay, e: React.MouseEvent) => void
+	onEditDay: (day: NutritionDay, e: React.MouseEvent) => void
 }
 
 export const DayCard = ({ day, openedDayId, onDayClick, onEditDay }: DayCardProps) => {
@@ -20,41 +19,46 @@ export const DayCard = ({ day, openedDayId, onDayClick, onEditDay }: DayCardProp
 
 	return (
 		<Card
-			className='background-light border-muted cursor-pointer'
+			style={{ background: '#fafafa', borderColor: '#d9d9d9', cursor: 'pointer' }}
 			onClick={() => onDayClick(day.id)}
 		>
-			<div className='flex justify-between items-center'>
-				<div className='flex items-center gap-3'>
-					<span className='text-lg'>{getDayIcon(day.id)}</span>
-					<Title level={4} className='text-custom m-0'>
-						{day.day_title}
+			<div
+				style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+			>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+					<span style={{ fontSize: 18 }}>{getDayIcon(day.id)}</span>
+					<Title level={4} style={{ margin: 0, color: '#333' }}>
+						{day.dayTitle}
 					</Title>
 					<Button
 						type='text'
 						icon={<EditOutlined />}
 						onClick={(e) => onEditDay(day, e)}
-						className='text-primary hover:text-info'
+						style={{ color: '#1890ff' }}
 					/>
 				</div>
 			</div>
 
 			{openedDayId === day.id && (
-				<div className='mt-4 space-y-4'>
+				<div style={{ marginTop: 16, display: 'grid', gap: 16 }}>
 					{day.meals.map((meal) => (
-						<div key={meal.id} className='border-l-4 border-primary pl-4'>
-							<Title level={5} className='text-custom mb-2'>
+						<div
+							key={meal.id}
+							style={{ paddingLeft: 16, borderLeft: '4px solid #1890ff' }}
+						>
+							<Title level={5} style={{ marginBottom: 8, color: '#333' }}>
 								{meal.name}
 							</Title>
 							{meal.items.length > 0 ? (
-								<ul className='list-disc ml-6 text-custom'>
+								<ul style={{ margin: 0, paddingLeft: 16, color: '#333' }}>
 									{meal.items.map((item, index) => (
-										<li key={index} className='mb-2'>
+										<li key={index} style={{ marginBottom: 8 }}>
 											{item}
 										</li>
 									))}
 								</ul>
 							) : (
-								<p className='text-muted'>Нет данных</p>
+								<p style={{ color: '#999' }}>Нет данных</p>
 							)}
 						</div>
 					))}

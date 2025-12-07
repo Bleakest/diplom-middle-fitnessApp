@@ -13,7 +13,7 @@ export interface NutritionSubcategory {
 	categoryId: string
 	name: string
 	description?: string
-	days: NutritionDay[]
+	days?: NutritionDay[]
 	createdAt: string | Date
 	updatedAt: string | Date
 }

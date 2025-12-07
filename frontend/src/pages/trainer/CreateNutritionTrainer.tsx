@@ -1,192 +1,210 @@
 import { useState } from 'react'
-import { Typography, Button, Form, Input, message, Modal } from 'antd'
-import { useParams, useNavigate } from 'react-router-dom'
-import { PlusOutlined } from '@ant-design/icons'
-import type { NutritionDay, NutritionSubcategory } from '../../types/nutritions'
+import { Typography, Button, Form, Input, message, Modal, Card } from 'antd'
+import { useNavigate, useParams } from 'react-router-dom'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { CreateDayForm } from '../../components/Admin/CreateDayForm'
+import { useCreateSubcategoryMutation } from '../../store/api/nutrition.api'
+import type { NutritionDay } from '../../types/nutritions'
+import type { NutritionDayInput, TempDay } from '../../store/types/nutrition.types'
 
 const { Title } = Typography
 const { TextArea } = Input
 
-interface ProgramFormData {
-	name: string
-	description?: string
-}
-
 export const CreateNutritionTrainer = () => {
-	const { categoryId } = useParams()
+	const { category } = useParams<{ category: string }>()
 	const navigate = useNavigate()
 	const [form] = Form.useForm()
 	const [isDayFormVisible, setIsDayFormVisible] = useState(false)
-	const [days, setDays] = useState<NutritionDay[]>([])
+	const [selectedDayForEdit, setSelectedDayForEdit] = useState<
+		NutritionDay | TempDay | null
+	>(null)
+	const [tempDays, setTempDays] = useState<TempDay[]>([])
 
-	const handleSubmit = async (values: ProgramFormData) => {
+	const [createSubcategory, { isLoading: isCreatingSubcategory }] =
+		useCreateSubcategoryMutation()
+
+	const handleSubmit = async (values: { name: string; description?: string }) => {
+		if (!category) {
+			message.error('Не указана категория')
+			return
+		}
+
 		try {
-			// 1. Сначала создаем подкатегорию
-			const nutritionSubcategoryData: Omit<
-				NutritionSubcategory,
-				'id' | 'createdAt' | 'updatedAt'
-			> = {
-				categoryId: categoryId || '',
-				name: values.name,
-				description: values.description,
-				days: [], // пока пустой массив
-			}
-
-			console.log('Создание подкатегории:', nutritionSubcategoryData)
-			const mockSubcategoryId = 'subcat_' + Date.now()
-
-			// 2. Создаем дни
-			const daysWithSubcatId = days.map((day) => ({
-				...day,
-				subcatId: mockSubcategoryId,
-				id: 'day_' + Date.now() + '_' + Math.random(),
+			// Подготавливаем дни для отправки
+			const daysToSend = tempDays.map((day) => ({
+				dayTitle: day.dayTitle,
+				dayOrder: day.dayOrder,
+				meals: day.meals.map((meal) => ({
+					type: meal.type,
+					name: meal.name,
+					mealOrder: meal.mealOrder,
+					items: meal.items.filter((item) => item.trim() !== ''),
+				})),
 			}))
 
-			console.log('Дни для создания:', daysWithSubcatId)
+			await createSubcategory({
+				categoryId: category,
+				name: values.name,
+				description: values.description,
+				days: daysToSend, // может быть пустым массивом
+			}).unwrap()
 
 			message.success('Подкатегория успешно создана')
-			navigate(`/admin/nutrition`)
-		} catch (error) {
-			message.error('Ошибка при создании подкатегории')
-			console.log(error)
+
+			// Закрываем форму и очищаем
+			form.resetFields()
+			setTempDays([])
+			message.info('Форма очищена. Можете создать ещё или закрыть')
+		} catch (error: any) {
+			console.error('Ошибка создания:', error)
+			message.error(error?.data?.message || 'Ошибка при создании подкатегории')
 		}
 	}
 
 	const handleCancel = () => {
-		navigate(-1)
+		console.log('в категории обратно')
+		navigate(`/admin/nutrition`)
 	}
 
 	const handleAddDay = () => {
+		setSelectedDayForEdit(null)
+		setIsDayFormVisible(true)
+	}
+
+	const handleEditDay = (day: TempDay) => {
+		setSelectedDayForEdit(day)
 		setIsDayFormVisible(true)
 	}
 
 	const handleDayFormCancel = () => {
 		setIsDayFormVisible(false)
+		setSelectedDayForEdit(null)
 	}
 
-	const handleDayFormSubmit = (
-		dayData: Omit<NutritionDay, 'id' | 'subcatId' | 'createdAt' | 'updatedAt'>,
-	) => {
-		// Создаем день с временными ID
-		const correctedDay: NutritionDay = {
-			...dayData,
-			id: 'day_temp_' + Date.now() + '_' + Math.random(),
-			subcatId: '',
-			dayOrder: days.length + 1,
-			meals: dayData.meals.map((meal, index) => ({
-				...meal,
-				id: 'meal_temp_' + Date.now() + '_' + index,
-				dayId: 'day_temp_' + Date.now() + '_' + Math.random(),
-				items: meal.items.filter((item) => item.trim() !== ''),
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			})),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
+	const handleDayFormSubmit = (dayData: NutritionDayInput) => {
+		if (selectedDayForEdit) {
+			setTempDays((prev) =>
+				prev.map((day) =>
+					day.id === selectedDayForEdit.id
+						? {
+								...day,
+								dayTitle: dayData.dayTitle,
+								dayOrder: dayData.dayOrder,
+								meals: dayData.meals,
+						  }
+						: day,
+				),
+			)
+			message.success('День обновлен')
+		} else {
+			// Добавляем новый день
+			const newDay: TempDay = {
+				id: `temp_${Date.now()}`,
+				subcatId: '',
+				dayTitle: dayData.dayTitle,
+				dayOrder: dayData.dayOrder,
+				meals: dayData.meals,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			}
+			setTempDays((prev) => [...prev, newDay])
+			message.success('День добавлен')
 		}
 
-		setDays((prev) => [...prev, correctedDay])
-		message.success('День добавлен')
 		setIsDayFormVisible(false)
+		setSelectedDayForEdit(null)
 	}
 
 	const handleRemoveDay = (dayId: string) => {
-		setDays((prev) => {
+		setTempDays((prev) => {
 			const filtered = prev.filter((day) => day.id !== dayId)
-			// Обновляем порядок дней
+			// Перенумеровываем порядок
 			return filtered.map((day, index) => ({
 				...day,
 				dayOrder: index + 1,
 			}))
 		})
+		message.success('День удален')
 	}
 
 	return (
 		<div className='page-container gradient-bg'>
 			<div className='page-card max-w-4xl'>
-				<div className='section-header'>
-					<Title level={2} className='section-title'>
+				<div className='flex justify-between items-center mb-8'>
+					<Title level={2} className='section-title inline-block m-0'>
 						➕ Создание новой подкатегории
 					</Title>
-					<p className='text-gray-600 mt-2'>Категория: {categoryId}</p>
+					<Button onClick={handleCancel}>Закрыть</Button>
 				</div>
 
-				<Form form={form} layout='vertical' onFinish={handleSubmit} className='mt-6'>
+				<Form form={form} layout='vertical' onFinish={handleSubmit}>
 					<Form.Item
 						name='name'
 						label='Название подкатегории'
 						rules={[
-							{ required: true, message: 'Введите название подкатегории' },
-							{ min: 2, message: 'Название должно быть не менее 2 символов' },
+							{ required: true, message: 'Введите название' },
+							{ min: 2, message: 'Минимум 2 символа' },
 						]}
 					>
 						<Input
-							placeholder='Например: Низкоуглеводная диета, Массонабор...'
+							placeholder='Название подкатегории'
 							size='large'
+							className='rounded-lg'
 						/>
 					</Form.Item>
 
-					<Form.Item name='description' label='Описание подкатегории'>
-						<TextArea placeholder='Опишите подкатегорию питания...' rows={3} />
+					<Form.Item name='description' label='Описание'>
+						<TextArea
+							placeholder='Описание подкатегории...'
+							rows={3}
+							className='rounded-lg'
+						/>
 					</Form.Item>
 
-					{/* Секция дней */}
-					<div className='mb-6'>
+					<div className='mb-8'>
 						<div className='flex justify-between items-center mb-4'>
-							<Title level={4} className='m-0'>
-								Дни подкатегории ({days.length})
+							<Title level={4} className='m-0 text-gray-700'>
+								Дни ({tempDays.length})
 							</Title>
 							<Button type='primary' icon={<PlusOutlined />} onClick={handleAddDay}>
 								Добавить день
 							</Button>
 						</div>
 
-						{days.length > 0 ? (
+						{tempDays.length > 0 ? (
 							<div className='space-y-3'>
-								{days.map((day) => (
-									<div
-										key={day.id}
-										className='p-4 border border-gray-200 rounded-lg bg-white shadow-sm'
-									>
+								{tempDays.map((day) => (
+									<Card key={day.id} className='border-muted bg-light'>
 										<div className='flex justify-between items-start'>
-											<div>
-												<div className='font-medium text-lg'>{day.dayTitle}</div>
+											<div
+												onClick={() => handleEditDay(day)}
+												className='cursor-pointer flex-1'
+											>
+												<div className='font-medium text-base'>{day.dayTitle}</div>
 												<div className='text-sm text-gray-600 mt-1'>
 													Приемов пищи: {day.meals.length} • Порядок: {day.dayOrder}
 												</div>
-												<div className='text-xs text-gray-500 mt-2'>
-													{day.meals.map((meal) => (
-														<div key={meal.id} className='mb-1'>
-															<span className='font-medium'>{meal.name}</span> (
-															{meal.type.toLowerCase()}):
-															{meal.items.map((item, idx) => (
-																<span key={idx} className='ml-2'>
-																	{item}
-																</span>
-															))}
-														</div>
-													))}
-												</div>
 											</div>
-											<Button type='text' danger onClick={() => handleRemoveDay(day.id)}>
-												Удалить
-											</Button>
+											<Button
+												type='text'
+												danger
+												icon={<DeleteOutlined />}
+												onClick={() => handleRemoveDay(day.id)}
+											/>
 										</div>
-									</div>
+									</Card>
 								))}
 							</div>
 						) : (
-							<div className='text-center py-8 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50'>
-								<p className='text-gray-500 mb-3'>Пока нет добавленных дней</p>
-								<Button type='primary' onClick={handleAddDay}>
-									Добавить первый день
-								</Button>
-							</div>
+							<Card className='text-center py-8 border-dashed'>
+								<p className='text-gray-500'>
+									Дни не обязательны. Можете добавить позже.
+								</p>
+							</Card>
 						)}
 					</div>
 
-					<Form.Item className='mt-8 mb-0'>
+					<Form.Item>
 						<div className='flex gap-3 justify-end'>
 							<Button size='large' onClick={handleCancel}>
 								Отмена
@@ -195,26 +213,26 @@ export const CreateNutritionTrainer = () => {
 								type='primary'
 								htmlType='submit'
 								size='large'
-								disabled={days.length === 0}
+								loading={isCreatingSubcategory}
 							>
-								Создать подкатегорию ({days.length} дней)
+								Создать подкатегорию
 							</Button>
 						</div>
 					</Form.Item>
 				</Form>
 
 				<Modal
-					title='Добавление нового дня'
+					title={selectedDayForEdit ? 'Редактирование дня' : 'Добавление дня'}
 					open={isDayFormVisible}
 					onCancel={handleDayFormCancel}
 					footer={null}
 					width={800}
 				>
-					{/* Исправленный пропс: programDays -> existingDays */}
 					<CreateDayForm
+						day={selectedDayForEdit}
+						existingDays={tempDays}
 						onSubmit={handleDayFormSubmit}
 						onCancel={handleDayFormCancel}
-						existingDays={days}
 					/>
 				</Modal>
 			</div>

@@ -1,24 +1,43 @@
-import React, { useState } from 'react'
-import { Typography, Button, Empty, Modal, Card } from 'antd'
-import { PlusOutlined } from '@ant-design/icons'
+import { useState } from 'react'
+import { Typography, Button, Card, message, Modal, Empty, Spin, Popconfirm } from 'antd'
 import { useParams } from 'react-router-dom'
-import type { NutritionDay } from '../../types/nutritions'
-import { mockNutritionDays } from '../../mocks/mockProgramDays'
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import { DayCard } from '../../components/Admin/DayCard'
 import { CreateDayForm } from '../../components/Admin/CreateDayForm'
+import {
+	useGetDaysQuery,
+	useDeleteDayMutation,
+	useUpdateDayMutation,
+	useCreateDayMutation,
+	useGetSubcategoryQuery,
+} from '../../store/api/nutrition.api'
+import type { NutritionDay } from '../../types/nutritions'
+import type { NutritionDayInput } from '../../store/types/nutrition.types'
 
 const { Title } = Typography
 
 export const NutritionPlanTrainer = () => {
-	const { categoryId, subcategoryId } = useParams() // переименовал для ясности
+	const { subcategory } = useParams<{ subcategory: string }>()
+
 	const [openedDayId, setOpenedDayId] = useState<string | null>(null)
 	const [isDayFormVisible, setIsDayFormVisible] = useState(false)
 	const [editingDay, setEditingDay] = useState<NutritionDay | null>(null)
 
-	// Фильтруем дни по subcategoryId и сортируем по dayOrder
-	const nutritionDays: NutritionDay[] = mockNutritionDays
-		.filter((day) => day.subcatId === subcategoryId)
-		.sort((a, b) => a.dayOrder - b.dayOrder)
+	const { data: subcategoryData } = useGetSubcategoryQuery(subcategory || '', {
+		skip: !subcategory,
+	})
+
+	const {
+		data: days = [],
+		isLoading,
+		refetch,
+	} = useGetDaysQuery(subcategory || '', {
+		skip: !subcategory,
+	})
+
+	const [createDay] = useCreateDayMutation()
+	const [updateDay] = useUpdateDayMutation()
+	const [deleteDay, { isLoading: isDeleting }] = useDeleteDayMutation()
 
 	const handleAddDay = () => {
 		setEditingDay(null)
@@ -31,12 +50,20 @@ export const NutritionPlanTrainer = () => {
 		setIsDayFormVisible(true)
 	}
 
-	const handleDayClick = (dayId: string) => {
-		if (openedDayId === dayId) {
-			setOpenedDayId(null)
-		} else {
-			setOpenedDayId(dayId)
+	const handleDeleteDay = async (dayId: string, e: React.MouseEvent) => {
+		e.stopPropagation()
+
+		try {
+			await deleteDay(dayId).unwrap()
+			message.success('День удален')
+			refetch()
+		} catch (error: any) {
+			message.error(error?.data?.message || 'Ошибка при удалении дня')
 		}
+	}
+
+	const handleDayClick = (dayId: string) => {
+		setOpenedDayId((prev) => (prev === dayId ? null : dayId))
 	}
 
 	const handleDayFormCancel = () => {
@@ -44,49 +71,71 @@ export const NutritionPlanTrainer = () => {
 		setEditingDay(null)
 	}
 
-	const handleDayFormSubmit = (
-		dayData:
-			| Omit<NutritionDay, 'id' | 'subcatId' | 'createdAt' | 'updatedAt'>
-			| NutritionDay,
-	) => {
-		console.log('Сохранение дня:', dayData)
+	const handleDayFormSubmit = async (dayData: NutritionDayInput) => {
+		try {
+			if (!subcategory) {
+				message.error('Не указана подкатегория')
+				return
+			}
 
-		// Если редактируем существующий день, dayData будет NutritionDay
-		// Если создаем новый, dayData будет без id и subcatId
-		if ('id' in dayData) {
-			console.log('Обновление дня с ID:', dayData.id)
-			// Здесь будет вызов API для обновления
-		} else {
-			console.log('Создание нового дня для подкатегории:', subcategoryId)
-			// Здесь будет вызов API для создания
+			if (editingDay) {
+				await updateDay({
+					id: editingDay.id,
+					updates: {
+						dayTitle: dayData.dayTitle,
+						dayOrder: dayData.dayOrder,
+						meals: dayData.meals,
+					},
+				}).unwrap()
+				message.success('День обновлен')
+			} else {
+				await createDay({
+					subcategoryId: subcategory,
+					...dayData,
+				}).unwrap()
+				message.success('День создан')
+			}
+
+			setIsDayFormVisible(false)
+			setEditingDay(null)
+			refetch()
+		} catch (error) {
+			console.log(error)
+			message.error('Ошибка при сохранении')
 		}
-
-		setIsDayFormVisible(false)
-		setEditingDay(null)
 	}
+
+	if (isLoading) {
+		return (
+			<div className='flex justify-center items-center min-h-screen'>
+				<Spin size='large' />
+			</div>
+		)
+	}
+
+	const nutritionDays: NutritionDay[] = [...days].sort((a, b) => a.dayOrder - b.dayOrder)
 
 	return (
 		<div className='page-container gradient-bg'>
-			<div className='page-card'>
-				<div className='section-header'>
-					<Title level={2} className='section-title'>
-						🍽️ Дни питания
+			<div className='page-card max-w-6xl'>
+				<div className='section-header text-center mb-8'>
+					<Title level={2} className='section-title inline-block'>
+						{subcategoryData?.name
+							? `Дни подкатегории: ${subcategoryData.name}`
+							: 'Дни питания'}
 					</Title>
-					<div className='mt-2 text-gray-600'>
-						Подкатегория: {subcategoryId}
-						{categoryId && ` • Категория: ${categoryId}`}
-					</div>
 				</div>
 
-				<div className='flex justify-between items-center mb-8'>
-					<div className='text-lg text-gray-700'>
-						Количество дней: <span className='font-semibold'>{nutritionDays.length}</span>
+				<div className='flex justify-between items-center mb-6'>
+					<div className='text-base text-gray-700'>
+						Количество дней:{' '}
+						<span className='font-semibold text-primary'>{nutritionDays.length}</span>
 					</div>
 					<Button
 						type='primary'
 						icon={<PlusOutlined />}
 						onClick={handleAddDay}
-						className='!rounded-lg !h-10'
+						className='h-10 rounded-lg'
 					>
 						Добавить день
 					</Button>
@@ -95,7 +144,25 @@ export const NutritionPlanTrainer = () => {
 				{nutritionDays.length > 0 ? (
 					<div className='space-y-4'>
 						{nutritionDays.map((day) => (
-							<Card key={day.id} className='card-hover'>
+							<Card key={day.id} className='card-hover border-muted bg-light relative'>
+								<Popconfirm
+									title='Удалить день?'
+									description='Вы уверены, что хотите удалить этот день?'
+									onConfirm={(e) => handleDeleteDay(day.id, e as any)}
+									okText='Да'
+									cancelText='Нет'
+									okButtonProps={{ danger: true, loading: isDeleting }}
+								>
+									<Button
+										type='text'
+										danger
+										size='small'
+										icon={<DeleteOutlined />}
+										className='absolute top-4 right-4 z-10'
+										title='Удалить день'
+									/>
+								</Popconfirm>
+
 								<DayCard
 									day={day}
 									openedDayId={openedDayId}
@@ -106,12 +173,12 @@ export const NutritionPlanTrainer = () => {
 						))}
 					</div>
 				) : (
-					<Card className='text-center py-12'>
+					<Card className='text-center py-12 border-muted bg-light'>
 						<Empty
 							description='В этой подкатегории пока нет дней'
 							image={Empty.PRESENTED_IMAGE_SIMPLE}
 						>
-							<Button type='primary' onClick={handleAddDay} className='!rounded-lg !mt-4'>
+							<Button type='primary' onClick={handleAddDay} className='mt-4 rounded-lg'>
 								Создать первый день
 							</Button>
 						</Empty>
@@ -124,7 +191,8 @@ export const NutritionPlanTrainer = () => {
 					onCancel={handleDayFormCancel}
 					footer={null}
 					width={800}
-					className='[&_.ant-modal-content]:rounded-xl'
+					className='rounded-xl'
+					destroyOnHidden
 				>
 					<CreateDayForm
 						day={editingDay}
