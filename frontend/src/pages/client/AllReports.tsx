@@ -1,19 +1,67 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Card, Pagination, Select, Typography, Spin, Alert, Empty } from 'antd'
+import {
+	Card,
+	Pagination,
+	Select,
+	Typography,
+	Spin,
+	Alert,
+	Empty,
+	Tag,
+	Space,
+} from 'antd'
 import { LoadingOutlined } from '@ant-design/icons'
 import type { FC } from 'react'
-import { useGetProgressReportsQuery } from '../../store/api/progress.api'
-import type { ProgressReport } from '../../store/api/progress.api'
+import {
+	useGetProgressReportsQuery,
+	type ProgressReport,
+} from '../../store/api/progress.api'
 
-const { Title } = Typography
+const { Title, Text } = Typography
 
 const periodOptions = [
 	{ label: 'Месяц', value: 'month' },
 	{ label: 'Год', value: 'year' },
 	{ label: 'Все время', value: 'all' },
-	{ label: 'Выбрать интервал', value: 'custom' },
 ]
+
+type MetricKey = 'weight' | 'waist' | 'hips'
+
+interface MetricDiff {
+	key: MetricKey
+	label: string
+	value: number
+	diff: number | null
+}
+
+const computeDiffs = (current: ProgressReport, prev?: ProgressReport): MetricDiff[] => {
+	const keys: Array<{ key: MetricKey; label: string }> = [
+		{ key: 'weight', label: 'Вес' },
+		{ key: 'waist', label: 'Талия' },
+		{ key: 'hips', label: 'Бёдра' },
+	]
+
+	return keys.map(({ key, label }) => {
+		const value = current[key]
+		const prevValue = prev ? prev[key] : undefined
+
+		if (prevValue == null || value == null) {
+			return { key, label, value, diff: null }
+		}
+
+		const diff = Number((value - prevValue).toFixed(1))
+		return { key, label, value, diff }
+	})
+}
+
+const formatDate = (isoDate: string): string => {
+	const date = new Date(isoDate)
+	const day = String(date.getDate()).padStart(2, '0')
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const year = date.getFullYear()
+	return `${day}.${month}.${year}`
+}
 
 export const AllReports: FC = () => {
 	const navigate = useNavigate()
@@ -21,62 +69,38 @@ export const AllReports: FC = () => {
 	const [period, setPeriod] = useState('all')
 	const pageSize = 5
 
-	// Получаем данные из RTK Query
+	// id отчётов, для которых загрузка фото уже провалилась
+	const [failedPhotoIds, setFailedPhotoIds] = useState<Set<string>>(new Set())
+
 	const { data: reports = [], isLoading, isError, error } = useGetProgressReportsQuery()
 
-	// Форматирование даты из ISO в ДД.ММ.ГГГГ
-	const formatDate = (isoDate: string): string => {
-		const date = new Date(isoDate)
-		const day = String(date.getDate()).padStart(2, '0')
-		const month = String(date.getMonth() + 1).padStart(2, '0')
-		const year = date.getFullYear()
-		return `${day}.${month}.${year}`
-	}
+	const sortedReports = useMemo(
+		() =>
+			[...reports].sort(
+				(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+			),
+		[reports],
+	)
 
-	// Фильтрация по периоду
-	// Фильтрация по периоду
 	const getFilteredReports = (): ProgressReport[] => {
-		if (period === 'all') return reports
+		if (period === 'all') return sortedReports
 
 		const now = new Date()
 		const filterDate = new Date()
 
 		if (period === 'month') {
-			// За последние 30 дней
 			filterDate.setDate(now.getDate() - 30)
 		} else if (period === 'year') {
-			// За последние 365 дней
 			filterDate.setDate(now.getDate() - 365)
 		}
 
-		// Сбрасываем время для корректного сравнения
 		filterDate.setHours(0, 0, 0, 0)
 
-		const filtered = reports.filter((report) => {
+		return sortedReports.filter((report) => {
 			const reportDate = new Date(report.date)
 			reportDate.setHours(0, 0, 0, 0)
-
-			// 🔍 ВРЕМЕННЫЙ ДЕБАГ - удали потом
-			console.log('🔍 Дебаг фильтрации:', {
-				period,
-				filterDate: filterDate.toISOString(),
-				reportDate: reportDate.toISOString(),
-				report_date_original: report.date,
-				passed: reportDate >= filterDate,
-			})
-
 			return reportDate >= filterDate
 		})
-
-		// 🔍 ВРЕМЕННЫЙ ДЕБАГ - удали потом
-		console.log('📊 Результат фильтрации:', {
-			period,
-			totalReports: reports.length,
-			filteredReports: filtered.length,
-			filterDate: filterDate.toISOString(),
-		})
-
-		return filtered
 	}
 
 	const filteredReports = getFilteredReports()
@@ -92,7 +116,10 @@ export const AllReports: FC = () => {
 		navigate(`/me/progress/reports/${reportId}`)
 	}
 
-	// Загрузка
+	const handlePhotoError = (reportId: string): void => {
+		setFailedPhotoIds((prev) => new Set(prev).add(reportId))
+	}
+
 	if (isLoading) {
 		return (
 			<div className='page-container gradient-bg'>
@@ -106,7 +133,6 @@ export const AllReports: FC = () => {
 		)
 	}
 
-	// Ошибка
 	if (isError) {
 		const errorMessage =
 			'data' in error && typeof error.data === 'object' && error.data !== null
@@ -127,7 +153,6 @@ export const AllReports: FC = () => {
 		)
 	}
 
-	// Нет отчетов
 	if (reports.length === 0) {
 		return (
 			<div className='page-container gradient-bg'>
@@ -146,7 +171,8 @@ export const AllReports: FC = () => {
 		)
 	}
 
-	// Основной контент
+	const paginated = filteredReports.slice((page - 1) * pageSize, page * pageSize)
+
 	return (
 		<div className='page-container gradient-bg'>
 			<div className='page-card'>
@@ -169,23 +195,29 @@ export const AllReports: FC = () => {
 
 				{filteredReports.length === 0 ? (
 					<Empty
-						description={`Нет отчетов за выбранный период: ${
-							periodOptions.find((opt) => opt.value === period)?.label
-						}`}
+						description={`Нет отчетов за выбранный период: ${periodOptions.find((opt) => opt.value === period)?.label
+							}`}
 						image={Empty.PRESENTED_IMAGE_SIMPLE}
 					/>
 				) : (
 					<>
 						<div className='space-y-4 mb-8'>
-							{filteredReports
-								.slice((page - 1) * pageSize, page * pageSize)
-								.map((report) => (
+							{paginated.map((report, indexInPage) => {
+								const globalIndex = (page - 1) * pageSize + indexInPage
+								const prev =
+									globalIndex > 0 ? filteredReports[globalIndex - 1] : undefined
+								const diffs = computeDiffs(report, prev)
+								const shouldShowPhoto =
+									!!report.photoFront && !failedPhotoIds.has(report.id)
+
+								return (
 									<Card
 										key={report.id}
-										className='report-card cursor-pointer hover:shadow-lg transition-shadow'
+										style={{ marginBottom: 8 }}
+										className='report-card cursor-pointer hover:shadow-lg transition-shadow mb-4'
 										onClick={() => handleReportClick(report.id)}
 									>
-										<div className='flex justify-between items-center'>
+										<div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
 											<div className='flex-1'>
 												<div className='text-lg font-semibold text-gray-800 mb-2'>
 													Отчет от {formatDate(report.date)}
@@ -199,22 +231,60 @@ export const AllReports: FC = () => {
 													{report.arm && <div>Рука: {report.arm} см</div>}
 												</div>
 											</div>
-											<div className='flex-shrink-0 ml-4'>
-												{report.photoFront ? (
+
+											<div className='flex flex-col items-start md:items-end gap-2'>
+												<Text className='text-gray-600 text-sm'>
+													Изменения относительно предыдущего отчёта
+												</Text>
+												<Space direction='vertical' size={4}>
+													{diffs.map(({ key, label, diff }) => {
+														if (diff === null) {
+															return (
+																<Text key={key} type='secondary' className='text-xs'>
+																	{label}: нет данных для сравнения
+																</Text>
+															)
+														}
+
+														if (diff === 0) {
+															return (
+																<Tag key={key} className='text-xs'>
+																	{label}: 0 (без изменений)
+																</Tag>
+															)
+														}
+
+														const isIncrease = diff > 0
+														const color = isIncrease ? 'red' : 'green'
+														const sign = diff > 0 ? '+' : ''
+
+														return (
+															<Tag key={key} color={color} className='text-xs'>
+																{label}: {sign}
+																{diff}
+															</Tag>
+														)
+													})}
+												</Space>
+											</div>
+
+											{shouldShowPhoto && (
+												<div
+													className='flex-shrink-0 md:ml-4'
+													onClick={(e) => e.stopPropagation()}
+												>
 													<img
 														src={report.photoFront}
 														alt='Фото отчета'
 														className='w-20 h-20 object-cover rounded-full border-2 border-gray-200'
+														onError={() => handlePhotoError(report.id)}
 													/>
-												) : (
-													<div className='w-20 h-20 flex items-center justify-center rounded-full border-2 border-gray-200 bg-gray-100'>
-														<span className='text-2xl text-gray-400'>📊</span>
-													</div>
-												)}
-											</div>
+												</div>
+											)}
 										</div>
 									</Card>
-								))}
+								)
+							})}
 						</div>
 
 						<div className='flex justify-center'>
