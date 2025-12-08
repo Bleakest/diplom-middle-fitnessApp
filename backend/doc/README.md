@@ -69,7 +69,7 @@ uploads/photos/
 
 - ✅ `GET /api/progress/latest` - Получение последнего отчета
 - ✅ `PUT /api/progress/new-report` - Создание нового отчета
-- ✅ `GET /api/progress/` - Получение всех отчетов клиента
+- ✅ `GET /api/progress/` - Получение всех отчетов (клиент или тренер)
 - ✅ `GET /api/progress/:id` - Получение отчета по ID
 - ✅ `GET /api/progress/:id/comments` - Получение комментариев к отчету
 - ✅ `POST /api/progress/:id/comments` - Добавление комментария (TRAINER)

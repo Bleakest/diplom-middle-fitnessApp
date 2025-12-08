@@ -805,13 +805,41 @@ async function main() {
 		}
 	}
 
-	// Создаём связи Trainer-Client (случайные статусы, избранное)
-	const statuses: Array<'PENDING' | 'ACCEPTED'> = ['PENDING', 'ACCEPTED']
+	// Создаём связи Trainer-Client с реалистичной логикой
+	// Клиент может отправить до 5 приглашений, но иметь только ОДНОГО ACCEPTED тренера
 	for (const client of clients) {
-		const numTrainers = faker.number.int({ min: 1, max: 3 })
-		const assignedTrainers = faker.helpers.arrayElements(trainers, numTrainers)
-		for (const trainer of assignedTrainers) {
-			const status = faker.helpers.arrayElement(statuses)
+		// Выбираем количество приглашений для клиента (1-5)
+		const numInvitations = faker.number.int({ min: 1, max: 5 })
+		const invitedTrainers = faker.helpers.arrayElements(trainers, numInvitations)
+
+		// Решаем, будет ли у клиента принятое приглашение
+		const hasAcceptedInvitation = faker.datatype.boolean()
+
+		let acceptedTrainer = null
+		if (hasAcceptedInvitation) {
+			// Если есть принятое приглашение, выбираем одного тренера как ACCEPTED
+			acceptedTrainer = faker.helpers.arrayElement(invitedTrainers)
+		}
+
+		// Создаём приглашения для каждого выбранного тренера
+		for (const trainer of invitedTrainers) {
+			let status: 'PENDING' | 'ACCEPTED' | 'REJECTED'
+			let acceptedAt: Date | null = null
+			let isFavorite = false
+
+			if (trainer.id === acceptedTrainer?.id) {
+				// Этот тренер принял приглашение
+				status = 'ACCEPTED'
+				acceptedAt = new Date()
+				isFavorite = true // Принятый тренер автоматически в избранном
+			} else if (hasAcceptedInvitation) {
+				// Если есть принятое приглашение, остальные отклоняются
+				status = 'REJECTED'
+			} else {
+				// Все приглашения в ожидании
+				status = 'PENDING'
+			}
+
 			await prisma.trainerClient.upsert({
 				where: {
 					clientId_trainerId: {
@@ -824,35 +852,38 @@ async function main() {
 					trainerId: trainer.id,
 					clientId: client.id,
 					status,
-					isFavorite: faker.datatype.boolean(),
-					acceptedAt: status === 'ACCEPTED' ? new Date() : null,
+					isFavorite,
+					acceptedAt,
 				},
 			})
 		}
 	}
-	// Для каждого тренера добавить 10-15 клиентов в избранное
+
+	// Дополнительно: некоторые тренеры могут добавить клиентов в избранное
+	// Но только для уже ACCEPTED связей
 	for (const trainer of trainers) {
-		const favoriteClients = faker.helpers.arrayElements(
-			clients,
-			faker.number.int({ min: 10, max: 15 }),
-		)
-		for (const client of favoriteClients) {
-			await prisma.trainerClient.upsert({
-				where: {
-					clientId_trainerId: {
-						clientId: client.id,
+		// Находим клиентов с ACCEPTED статусом у этого тренера
+		const acceptedRelations = await prisma.trainerClient.findMany({
+			where: {
+				trainerId: trainer.id,
+				status: 'ACCEPTED',
+			},
+			select: { clientId: true },
+		})
+
+		// Случайно помечаем некоторых как избранных (уже помечены выше, но на всякий случай)
+		for (const relation of acceptedRelations) {
+			// 70% шанс что ACCEPTED клиент будет в избранном
+			if (faker.datatype.boolean(0.7)) {
+				await prisma.trainerClient.updateMany({
+					where: {
 						trainerId: trainer.id,
+						clientId: relation.clientId,
+						status: 'ACCEPTED',
 					},
-				},
-				update: { isFavorite: true },
-				create: {
-					trainerId: trainer.id,
-					clientId: client.id,
-					status: 'ACCEPTED',
-					isFavorite: true,
-					acceptedAt: new Date(),
-				},
-			})
+					data: { isFavorite: true },
+				})
+			}
 		}
 	}
 
