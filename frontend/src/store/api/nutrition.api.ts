@@ -203,8 +203,8 @@ export const nutritionApi = createApi({
 		}),
 
 		createDay: builder.mutation<NutritionDay, CreateDayInput>({
-			query: (day) => ({
-				url: '/nutrition/days',
+			query: ({ subcatId, ...day }) => ({
+				url: `/nutrition/subcategories/${subcatId}/days`,
 				method: 'POST',
 				body: day,
 			}),
@@ -214,7 +214,7 @@ export const nutritionApi = createApi({
 		updateDay: builder.mutation<NutritionDay, { id: string } & Partial<CreateDayInput>>({
 			query: ({ id, ...updates }) => ({
 				url: `/nutrition/days/${id}`,
-				method: 'PUT',
+				method: 'PATCH',
 				body: updates,
 			}),
 			invalidatesTags: ['Day'],
