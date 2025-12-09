@@ -30,7 +30,7 @@ import { useGetClientNutritionPlanQuery } from '../../store/api/nutrition.api'
 import { performLogout, setUser, updateUser } from '../../store/slices/auth.slice'
 import type { ApiError } from '../../store/types/auth.types'
 import { ErrorState, UnauthorizedState } from '../../components/errors'
-import { API_BASE_URL, API_ENDPOINTS } from '../../config/api.config'
+import { API_BASE_URL } from '../../config/api.config'
 
 const { Title, Text } = Typography
 
@@ -303,7 +303,7 @@ export const PersonalAccount = () => {
 		<div className='page-container gradient-bg'>
 			<div className='page-card' style={{ maxWidth: '1000px' }}>
 				<div className='section-header'>
-					<Title level={2} className='section-title !mb-2'>
+					<Title level={2} className='section-title mb-2!'>
 						👤 Мой профиль
 					</Title>
 				</div>
@@ -338,7 +338,7 @@ export const PersonalAccount = () => {
 									}}
 								/>
 
-								<Title level={4} className='!mt-4 !mb-1 !text-gray-800'>
+								<Title level={4} className='mt-4! mb-1! text-gray-800!'>
 									{user.name}
 								</Title>
 								<Text type='secondary'>{user.email || user.phone}</Text>
@@ -587,17 +587,19 @@ export const PersonalAccount = () => {
 					</>
 				) : (
 					<>
-						<Card className='mb-4!'>
+						<Card className='mb-4! mt-4!'>
 							<div className='text-center'>
 								<Title level={4} className='text-gray-800! mb-2!'>
 									⚠️ У вас нет тренера
 								</Title>
-								<Text className='text-gray-700! mb-4!'>
-									Найдите персонального тренера для достижения ваших целей
-								</Text>
-								<Button type='primary' onClick={() => navigate('/trainers')}>
-									Выбрать тренера
-								</Button>
+								<div className='max-w-md mx-auto'>
+									<Text className='text-gray-700! mb-4! block'>
+										Найдите персонального тренера для достижения ваших целей
+									</Text>
+									<Button type='primary' onClick={() => navigate('/trainers')}>
+										Выбрать тренера
+									</Button>
+								</div>
 							</div>
 						</Card>
 					</>

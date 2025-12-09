@@ -87,10 +87,13 @@ export const Admin: React.FC = () => {
 			// Инвалидируем кэш данных пользователя, чтобы обновить статус
 			dispatch(userApi.util.invalidateTags(['User']))
 			refetchStats()
-		} catch (error: any) {
+		} catch (error) {
+			const apiError = error as {
+				data?: { message?: string; error?: { message?: string } }
+			}
 			const errorMessage =
-				error?.data?.message ||
-				error?.data?.error?.message ||
+				apiError?.data?.message ||
+				apiError?.data?.error?.message ||
 				'Не удалось принять клиента'
 			message.error(errorMessage)
 		} finally {
@@ -107,10 +110,13 @@ export const Admin: React.FC = () => {
 			// Инвалидируем кэш данных пользователя, чтобы обновить статус
 			dispatch(userApi.util.invalidateTags(['User']))
 			refetchStats()
-		} catch (error: any) {
+		} catch (error) {
+			const apiError = error as {
+				data?: { message?: string; error?: { message?: string } }
+			}
 			const errorMessage =
-				error?.data?.message ||
-				error?.data?.error?.message ||
+				apiError?.data?.message ||
+				apiError?.data?.error?.message ||
 				'Не удалось отклонить приглашение'
 			message.error(errorMessage)
 		} finally {
@@ -326,8 +332,8 @@ export const Admin: React.FC = () => {
 					<div className='admin-page-card'>
 						{/* Header */}
 						<div className='flex items-center justify-between mb-6'>
-							<div className='section-header !mb-0 !text-left'>
-								<Title level={2} className='section-title !mb-0'>
+							<div className='section-header mb-0! text-left!'>
+								<Title level={2} className='section-title mb-0!'>
 									🏢 Панель тренера
 								</Title>
 								<Text type='secondary' className='block mt-1'>

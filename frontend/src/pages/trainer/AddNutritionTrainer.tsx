@@ -128,9 +128,10 @@ export const AddNutritionTrainer = () => {
 
 			message.success('План питания успешно назначен клиенту!')
 			navigate(`/admin/client/${clientId}`)
-		} catch (error: any) {
+		} catch (error) {
+			const apiError = error as { data?: { message?: string } }
 			console.error('Ошибка при назначении плана:', error)
-			message.error(error?.data?.message || 'Ошибка при назначении плана питания')
+			message.error(apiError?.data?.message || 'Ошибка при назначении плана питания')
 		}
 	}
 
@@ -167,7 +168,7 @@ export const AddNutritionTrainer = () => {
 							{day.dayOrder}
 						</div>
 						<div>
-							<Title level={5} className='!mb-0'>
+							<Title level={5} className='mb-0!'>
 								{day.dayTitle}
 							</Title>
 							<Text type='secondary'>{day.meals?.length || 0} приёмов пищи</Text>
@@ -254,7 +255,7 @@ export const AddNutritionTrainer = () => {
 						type='text'
 						icon={<ArrowLeftOutlined />}
 						onClick={handleCancel}
-						className='!absolute !left-8 !top-8'
+						className='absolute! left-8! top-8!'
 					>
 						Назад
 					</Button>
@@ -354,7 +355,7 @@ export const AddNutritionTrainer = () => {
 					<Card className='mb-6'>
 						<div className='flex items-center justify-between mb-4'>
 							<div>
-								<Title level={4} className='!mb-1'>
+								<Title level={4} className='mb-1!'>
 									📅 Дни питания
 								</Title>
 								<Text type='secondary'>
@@ -373,7 +374,7 @@ export const AddNutritionTrainer = () => {
 							</div>
 						</div>
 
-						<Divider className='!my-4' />
+						<Divider className='my-4!' />
 
 						{isLoadingDays || isFetchingDays ? (
 							<div className='flex justify-center py-8'>

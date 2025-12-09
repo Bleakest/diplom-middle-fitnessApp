@@ -149,7 +149,7 @@ export const userApi = createApi({
 				method: 'DELETE',
 			}),
 			// Инвалидируем и User и Trainers, чтобы обновить статусы приглашений
-			invalidatesTags: ['User', 'Trainers', 'AssignedPlan'],
+			invalidatesTags: ['User', 'Trainers'],
 		}),
 
 		// Отменить приглашение тренеру

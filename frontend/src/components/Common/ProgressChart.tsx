@@ -15,14 +15,26 @@ import type { ProgressMetric } from '../../constants/progressMetrics'
 
 const { Text } = Typography
 
+type ChartDataPoint = {
+	date: string
+	_interpolated?: boolean
+	[key: string]: string | number | boolean | undefined
+}
+
+interface DotProps {
+	cx?: number
+	cy?: number
+	payload?: ChartDataPoint
+}
+
 // Функция для генерации интерполированных данных между точками
 const interpolateData = (
-	data: Array<Record<string, any>>,
+	data: ChartDataPoint[],
 	period: 'month' | 'year' | 'all',
-): Array<Record<string, any>> => {
+): ChartDataPoint[] => {
 	if (data.length < 2) return data
 
-	const result: Array<Record<string, any>> = []
+	const result: ChartDataPoint[] = []
 	const sortedData = [...data].sort(
 		(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
 	)
@@ -52,7 +64,7 @@ const interpolateData = (
 					currentDate.getTime() + (nextDate.getTime() - currentDate.getTime()) * ratio,
 				)
 
-				const interpolatedPoint: Record<string, any> = {
+				const interpolatedPoint: ChartDataPoint = {
 					date: interpolatedDate.toISOString().split('T')[0],
 					_interpolated: true, // Помечаем как интерполированную точку
 				}
@@ -80,7 +92,7 @@ const interpolateData = (
 }
 
 // Функция для получения описания диапазона дат
-const getDateRangeDescription = (data: Array<Record<string, any>>): string => {
+const getDateRangeDescription = (data: ChartDataPoint[]): string => {
 	if (data.length === 0) return ''
 	if (data.length === 1) {
 		return new Date(data[0].date).toLocaleDateString('ru-RU', {
@@ -109,14 +121,22 @@ const getDateRangeDescription = (data: Array<Record<string, any>>): string => {
 	return `${firstStr} — ${lastStr}`
 }
 
-interface ProgressChartProps {
-	data: Array<Record<string, any>>
+interface ProgressChartProps<
+	T extends { date: string; [key: string]: string | number | boolean | undefined },
+> {
+	data: T[]
 	metrics: readonly ProgressMetric[]
 	chartTitle?: string
 	compact?: boolean // Компактный режим для страницы /me
 }
 
-export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartProps) => {
+export const ProgressChart = <
+	T extends { date: string; [key: string]: string | number | boolean | undefined },
+>({
+	data,
+	metrics,
+	compact = false,
+}: ProgressChartProps<T>) => {
 	// По умолчанию показываем только основные метрики
 	const defaultSelected = useMemo(() => ['weight', 'waist', 'hips'], [])
 	const [selectedMetrics, setSelectedMetrics] = useState<string[]>(defaultSelected)
@@ -138,7 +158,7 @@ export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartP
 	}
 
 	const filteredData = useMemo(() => {
-		let filtered = data
+		let filtered: ChartDataPoint[] = data
 
 		if (period !== 'all') {
 			const now = new Date()
@@ -173,7 +193,7 @@ export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartP
 
 	// Диапазон дат в отфильтрованных данных
 	const dateRange = useMemo(() => {
-		const realData = filteredData.filter((item) => !item._interpolated)
+		const realData: ChartDataPoint[] = filteredData.filter((item) => !item._interpolated)
 		return getDateRangeDescription(realData)
 	}, [filteredData])
 
@@ -194,7 +214,7 @@ export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartP
 						<Radio.Button value='all'>Всё время</Radio.Button>
 					</Radio.Group>
 					{dateRange && realDataCount > 0 && (
-						<Tag color='blue' className='!m-0'>
+						<Tag color='blue' className='m-0!'>
 							{dateRange} ({realDataCount}{' '}
 							{realDataCount === 1 ? 'отчёт' : realDataCount < 5 ? 'отчёта' : 'отчётов'})
 						</Tag>
@@ -268,9 +288,9 @@ export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartP
 											dataKey={metric.nameMetric}
 											stroke={metric.color}
 											strokeWidth={2}
-											dot={(props: any) => {
+											dot={(props: DotProps) => {
 												const { cx, cy, payload } = props
-												if (payload._interpolated) {
+												if (payload?._interpolated) {
 													// Интерполированные точки - маленькие и прозрачные
 													return (
 														<circle
@@ -415,9 +435,9 @@ export const ProgressChart = ({ data, metrics, compact = false }: ProgressChartP
 													dataKey={metric.nameMetric}
 													stroke={metric.color}
 													strokeWidth={2.5}
-													dot={(props: any) => {
+													dot={(props: DotProps) => {
 														const { cx, cy, payload } = props
-														if (payload._interpolated) {
+														if (payload?._interpolated) {
 															return (
 																<circle
 																	key={`${metric.nameMetric}-${cx}-${cy}`}
