@@ -106,11 +106,19 @@ export const ClientInfo = ({ client, onAddNutrition }: ClientInfoProps) => {
 					</div>
 				</div>
 
-				<Divider />
+				<div className='mt-auto pt-4'>
+					<Divider className='mb-4' />
 
-				<Button type='primary' block icon={<PlusOutlined />} onClick={onAddNutrition}>
-					Добавить план питания
-				</Button>
+					<Button
+						type='primary'
+						block
+						icon={<PlusOutlined />}
+						onClick={onAddNutrition}
+						className='!rounded-lg'
+					>
+						Добавить план питания
+					</Button>
+				</div>
 			</div>
 		</Card>
 	)

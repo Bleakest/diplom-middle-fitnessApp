@@ -6,6 +6,7 @@ import {
 	CommentsSection,
 	LatestReport,
 	LoadingState,
+	NutritionPlan,
 	ProgressChart,
 } from '../../components'
 import { useAuth } from '../../store/hooks'
@@ -82,30 +83,34 @@ export const ClientProfile = () => {
 					</Col>
 
 					<Col xs={24} lg={16}>
-						<Card className='card-hover'>
-							{progressLoading ? (
-								<div className='flex justify-center py-8'>
-									<LoadingState />
-								</div>
-							) : (
-								<>
-									<LatestReport
-										reports={clientData.lastProgress}
-										photo={clientData.client.photo}
-									/>
-									{/* Куда должна вести кнопка "Все отчеты"? */}
-									<div className='mt-4'>
-										<Button
-											type='primary'
-											onClick={() => navigate(`/me/progress/reports`)}
-											className='!rounded-lg'
-										>
-											Все отчеты
-										</Button>
+						<div className='flex flex-col h-full gap-6'>
+							<Card className='card-hover flex-1 flex flex-col'>
+								{progressLoading ? (
+									<div className='flex justify-center py-8'>
+										<LoadingState />
 									</div>
-								</>
-							)}
-						</Card>
+								) : (
+									<>
+										<LatestReport
+											reports={clientData.lastProgress}
+											photo={clientData.client.photo}
+										/>
+										{/* Куда должна вести кнопка "Все отчеты"? */}
+										<div className='mt-4'>
+											<Button
+												type='primary'
+												onClick={() => navigate(`/me/progress/reports`)}
+												className='!rounded-lg'
+											>
+												Все отчеты
+											</Button>
+										</div>
+									</>
+								)}
+							</Card>
+
+							<NutritionPlan clientId={clientId} />
+						</div>
 					</Col>
 				</Row>
 

@@ -77,10 +77,17 @@ export const nutritionApi = createApi({
 	tagTypes: ['Category', 'Subcategory', 'Day', 'AssignedPlan'],
 	endpoints: (builder) => ({
 		// План питания текущего клиента
-		getClientNutritionPlan: builder.query<ClientNutritionPlanResponse, { period?: 'day' | 'week' | 'month'; date?: string } | void>({
-			query: (params) => ({
+		getClientNutritionPlan: builder.query<
+			ClientNutritionPlanResponse,
+			{ clientId: string; period?: 'day' | 'week' | 'month'; date?: string }
+		>({
+			query: ({ clientId, period = 'day', date }) => ({
 				url: '/nutrition/client/plan',
-				params: params || undefined,
+				params: {
+					clientId,
+					period,
+					...(date && { date }),
+				},
 			}),
 			providesTags: ['AssignedPlan', 'Day'],
 		}),
