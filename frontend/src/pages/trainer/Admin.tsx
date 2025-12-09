@@ -298,7 +298,7 @@ export const Admin: React.FC = () => {
 	]
 
 	return (
-		<div className='gradient-bg'>
+		// <div className='gradient-bg min-h-screen'>
 			<Layout className='admin-layout bg-transparent'>
 				<Sider
 					width={sidebarCollapsed ? 80 : 300}
@@ -324,7 +324,7 @@ export const Admin: React.FC = () => {
 					)}
 				</Sider>
 
-				<Content className='admin-content p-6'>
+				<Content className='admin-content'>
 					<div className='admin-page-card'>
 						{/* Header */}
 						<div className='flex items-center justify-between mb-6'>
@@ -356,6 +356,6 @@ export const Admin: React.FC = () => {
 					</div>
 				</Content>
 			</Layout>
-		</div>
+		// </div>
 	)
 }
