@@ -48,6 +48,16 @@ export async function getClientNutritionPlan(req: FastifyRequest, reply: Fastify
 			throw ApiError.badRequest('Параметр запроса clientId не разрешен для клиента')
 		}
 		clientId = userId
+		// Проверяем, что у клиента есть активный тренер
+		const activeTrainer = await prisma.trainerClient.findFirst({
+			where: {
+				clientId,
+				status: 'ACCEPTED',
+			},
+		})
+		if (!activeTrainer) {
+			throw ApiError.forbidden('Доступ запрещен: У вас нет активного тренера')
+		}
 	} else {
 		throw ApiError.forbidden('Доступ запрещен')
 	}

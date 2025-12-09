@@ -132,7 +132,7 @@ export async function cancelTrainerCooperation(clientId: string) {
 
 	const planIds = nutritionPlansToDelete.map((plan) => plan.id)
 
-	// 3. Удаляем связь с тренером и планы питания в транзакции
+	// 3. Удаляем связь с тренером и деактивируем все активные планы питания клиента в транзакции
 	await prisma.$transaction([
 		// Удаляем связь с тренером
 		prisma.trainerClient.delete({
@@ -140,23 +140,21 @@ export async function cancelTrainerCooperation(clientId: string) {
 				id: activeRelation.id,
 			},
 		}),
-		// Удаляем все планы питания от этого тренера
-		...(planIds.length > 0
-			? [
-					prisma.clientNutritionPlan.deleteMany({
-						where: {
-							id: {
-								in: planIds,
-							},
-						},
-					}),
-			  ]
-			: []),
+		// Деактивируем все активные планы питания клиента (на всякий случай, если связь неправильная)
+		prisma.clientNutritionPlan.updateMany({
+			where: {
+				clientId,
+				isActive: true,
+			},
+			data: {
+				isActive: false,
+			},
+		}),
 	])
 
 	return {
 		message: `Сотрудничество с тренером "${activeRelation.trainer.name}" успешно отменено`,
-		deletedNutritionPlans: planIds.length,
+		deactivatedNutritionPlans: planIds.length,
 	}
 }
 
