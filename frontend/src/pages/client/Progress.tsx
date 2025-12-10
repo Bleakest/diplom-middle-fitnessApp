@@ -30,7 +30,7 @@ export const Progress = () => {
   const navigate = useNavigate()
   const { data: reports, isLoading, error, refetch } = useGetProgressReportsQuery()
   const [activeTab, setActiveTab] = useState<string>('2d')
-  const [selectedReport, setSelectedReport] = useState<any>(null)
+  const [selectedReport, setSelectedReport] = useState<(ProgressReport & { index: number }) | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
 
   if (isLoading) {
@@ -110,7 +110,7 @@ export const Progress = () => {
     return `${day}.${month}.${year} ${hours}:${minutes}`
   }
 
-  const handleBlockClick = (data: any, index: number) => {
+  const handleBlockClick = (data: ProgressReport, index: number) => {
     setSelectedReport({ ...data, index })
     setIsModalVisible(true)
   }

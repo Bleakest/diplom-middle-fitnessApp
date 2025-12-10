@@ -1,10 +1,23 @@
 import { useRef, useState, useMemo } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text, Html } from '@react-three/drei'
-import { Card, Typography, Tooltip as AntTooltip, Space, Tag } from 'antd'
+import { OrbitControls, Text } from '@react-three/drei'
+import { Card, Typography, Space, Tag } from 'antd'
 import * as THREE from 'three'
 
 const { Text: AntText } = Typography
+
+// Генерируем позиции звезд один раз вне компонента
+const generateStarPositions = (): Float32Array => {
+	const positions = new Float32Array(200 * 3)
+	for (let i = 0; i < 200; i++) {
+		positions[i * 3] = (Math.random() - 0.5) * 30
+		positions[i * 3 + 1] = Math.random() * 20
+		positions[i * 3 + 2] = (Math.random() - 0.5) * 30
+	}
+	return positions
+}
+
+const STAR_POSITIONS = generateStarPositions()
 
 interface ProgressDataPoint {
 	date: string
@@ -33,12 +46,11 @@ interface TowerBlockProps {
 	index: number
 	totalBlocks: number
 	onClick: () => void
-	isHovered: boolean
 	onHover: (hovered: boolean) => void
 }
 
 // Компонент одного "этажа" башни
-const TowerBlock = ({ position, data, index, totalBlocks, onClick, isHovered, onHover }: TowerBlockProps) => {
+const TowerBlock = ({ position, data, index, totalBlocks, onClick, onHover }: TowerBlockProps) => {
 	const meshRef = useRef<THREE.Mesh>(null)
 	const [hovered, setHovered] = useState(false)
 	const [appeared, setAppeared] = useState(false)
@@ -149,23 +161,13 @@ const TowerBlock = ({ position, data, index, totalBlocks, onClick, isHovered, on
 
 // Частицы для эффекта звезд
 const StarField = () => {
-	const points = useMemo(() => {
-		const positions = new Float32Array(200 * 3)
-		for (let i = 0; i < 200; i++) {
-			positions[i * 3] = (Math.random() - 0.5) * 30
-			positions[i * 3 + 1] = Math.random() * 20
-			positions[i * 3 + 2] = (Math.random() - 0.5) * 30
-		}
-		return positions
-	}, [])
-
 	return (
 		<points>
 			<bufferGeometry>
 				<bufferAttribute
 					attach="attributes-position"
-					count={points.length / 3}
-					array={points}
+					count={STAR_POSITIONS.length / 3}
+					array={STAR_POSITIONS}
 					itemSize={3}
 				/>
 			</bufferGeometry>
@@ -176,11 +178,9 @@ const StarField = () => {
 
 // Основная сцена с башней
 const TowerScene = ({ data, onBlockClick, onHover }: ProgressTower3DProps & { onHover: (info: HoveredBlockInfo | null) => void }) => {
-	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 	const groupRef = useRef<THREE.Group>(null)
 
 	const handleBlockHover = (hovered: boolean, point: ProgressDataPoint, index: number) => {
-		setHoveredIndex(hovered ? index : null)
 		onHover(hovered ? { data: point, index } : null)
 	}
 
@@ -210,18 +210,17 @@ const TowerScene = ({ data, onBlockClick, onHover }: ProgressTower3DProps & { on
 
 			{/* Башня из блоков */}
 			<group ref={groupRef}>
-				{sortedData.map((point, index) => (
-					<TowerBlock
-						key={`${point.date}-${index}`}
-						position={[0, index * 0.9, 0]}
-						data={point}
-						index={index}
-						totalBlocks={sortedData.length}
-						onClick={() => onBlockClick?.(point, index)}
-						isHovered={hoveredIndex === index}
-						onHover={(hovered) => handleBlockHover(hovered, point, index)}
-					/>
-				))}
+			{sortedData.map((point, index) => (
+				<TowerBlock
+					key={`${point.date}-${index}`}
+					position={[0, index * 0.9, 0]}
+					data={point}
+					index={index}
+					totalBlocks={sortedData.length}
+					onClick={() => onBlockClick?.(point, index)}
+					onHover={(hovered) => handleBlockHover(hovered, point, index)}
+				/>
+			))}
 
 				{/* Основание башни */}
 				<mesh position={[0, -0.5, 0]} receiveShadow>
