@@ -5,7 +5,6 @@ import { setCredentials } from '../../store/slices/auth.slice'
 import { useAppDispatch } from '../../store/hooks'
 import { useState } from 'react'
 import { LockOutlined, UserOutlined } from '@ant-design/icons'
-import type { ApiError } from '../../store/types/auth.types'
 import { BadRequestState } from '../../components/errors'
 
 export const Login = () => {
