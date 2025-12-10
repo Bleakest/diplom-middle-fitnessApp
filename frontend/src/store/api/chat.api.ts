@@ -37,18 +37,19 @@ export interface Chat {
 	isFavorite?: boolean
 }
 
-export interface GetMessagesResponse {
-	messages: Message[]
-	pagination: {
-		page: number
-		limit: number
-		total: number
-		totalPages: number
-	}
+export interface ChatListResponse {
+	chats: Chat[]
 }
 
 export interface SendMessageResponse {
 	message: Message
+}
+
+export interface GetMessagesResponse {
+	messages: Message[]
+	total: number
+	page: number
+	limit: number
 }
 
 export const chatApi = createApi({
@@ -66,7 +67,7 @@ export const chatApi = createApi({
 	}),
 	tagTypes: ['Messages', 'Chats'],
 	endpoints: (builder) => ({
-		getChats: builder.query<Chat[], void>({
+		getChats: builder.query<ChatListResponse, void>({
 			query: () => '/',
 			providesTags: ['Chats'],
 		}),

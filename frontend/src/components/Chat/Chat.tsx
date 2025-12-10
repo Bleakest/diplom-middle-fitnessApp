@@ -5,28 +5,44 @@ import type { MessageType, ChatUploadFile } from '../../types'
 import { MessageList } from './MessageList'
 import { InputPanel } from './InputPanel'
 import { ImagePreviewModal } from './ImagePreviewModal'
-import { useAppDispatch } from '../../store/hooks'
-import { addMessage, markAsRead } from '../../store/slices/chat.slice'
-import { useGetMessagesQuery, useSendMessageMutation } from '../../store/api/chat.api'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import {
+	addMessage,
+	receiveMessage,
+	setActiveChat,
+	markAsRead,
+} from '../../store/slices/chat.slice'
+import {
+	useGetMessagesQuery,
+	useSendMessageMutation,
+	useGetChatsQuery,
+} from '../../store/api/chat.api'
 import { socketService } from '../../utils/socket'
 
 const { Text } = Typography
 
 type ChatProps = {
 	role: 'client' | 'trainer'
-	chatId: string // Обязательный ID чата
+	chatId?: string // Опциональный - если не передан, возьмем из списка чатов
 	partnerName?: string // Имя собеседника
 }
 
-export const Chat: React.FC<ChatProps> = ({ role, chatId, partnerName }) => {
+export const Chat: React.FC<ChatProps> = ({ role, chatId: propChatId, partnerName }) => {
 	const dispatch = useAppDispatch()
+	const user = useAppSelector((state) => state.auth.user)
+
+	// Получить список чатов
+	const { data: chatsData } = useGetChatsQuery(undefined, { skip: !user })
+
+	// Определить реальный chatId
+	const chatId = propChatId || (chatsData?.chats.length ? chatsData.chats[0].id : null)
 
 	// RTK Query hooks
 	const {
 		data: messagesData,
 		isLoading: messagesLoading,
 		error: messagesError,
-	} = useGetMessagesQuery({ chatId, page: 1, limit: 50 }, { skip: !chatId })
+	} = useGetMessagesQuery({ chatId: chatId!, page: 1, limit: 50 }, { skip: !chatId })
 	const [sendMessage, { isLoading: sendLoading }] = useSendMessageMutation()
 
 	const [form] = Form.useForm()
@@ -52,7 +68,7 @@ export const Chat: React.FC<ChatProps> = ({ role, chatId, partnerName }) => {
 				if (socket) {
 					socket.on('new_message', (message: MessageType) => {
 						if (message.chatId === chatId) {
-							dispatch(addMessage({ chatId, message }))
+							dispatch(receiveMessage({ chatId, message }))
 						}
 					})
 				}
@@ -70,7 +86,10 @@ export const Chat: React.FC<ChatProps> = ({ role, chatId, partnerName }) => {
 
 	// Отмечаем сообщения как прочитанные при открытии чата
 	useEffect(() => {
-		dispatch(markAsRead(chatId))
+		if (chatId) {
+			dispatch(setActiveChat(chatId))
+			dispatch(markAsRead(chatId))
+		}
 	}, [chatId, dispatch])
 
 	const insertEmoji = (emoji: string) => {
@@ -116,6 +135,8 @@ export const Chat: React.FC<ChatProps> = ({ role, chatId, partnerName }) => {
 	}
 
 	const handleSend = async () => {
+		if (!chatId) return
+
 		const text = form.getFieldValue('text') || ''
 		const imageUrl = fileList.length > 0 ? fileList[0].url : undefined
 
