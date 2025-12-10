@@ -71,11 +71,11 @@ export const PersonalAccount = () => {
 			skip: !isAuthenticated || user?.role !== 'CLIENT',
 		})
 
-	// Получаем план питания клиента
+	// Получаем план питания клиента (только если есть тренер)
 	const { data: nutritionPlanData } = useGetClientNutritionPlanQuery(
 		{ clientId: user?.id || '', period: 'day' },
 		{
-			skip: !isAuthenticated || user?.role !== 'CLIENT',
+			skip: !isAuthenticated || user?.role !== 'CLIENT' || !user?.trainer,
 		},
 	)
 

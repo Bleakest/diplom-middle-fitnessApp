@@ -20,13 +20,37 @@ export const Nutrition: React.FC = () => {
 	const user = useAppSelector((state) => state.auth.user)
 	const clientId = user?.id || ''
 
-	const { data, isLoading, isError } = useGetClientNutritionPlanQuery({
-		clientId,
-		period: filter,
-	})
+	const { data, isLoading, isError } = useGetClientNutritionPlanQuery(
+		{
+			clientId,
+			period: filter,
+		},
+		{
+			skip: !user || !user.trainer, // Не делаем запрос, если нет тренера
+		},
+	)
 
 	const days = data?.days || []
 	const plan = data?.plan
+
+	// Если у клиента нет тренера, показываем соответствующее сообщение
+	if (!user?.trainer) {
+		return (
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
+				<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[1200px]'>
+					<Title level={2} className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'>
+						🍽️ План питания
+					</Title>
+					<Alert
+						type='info'
+						message='У вас пока нет тренера'
+						description='Для получения плана питания необходимо выбрать тренера на главной странице.'
+						showIcon
+					/>
+				</div>
+			</div>
+		)
+	}
 
 	if (isLoading) {
 		return (
