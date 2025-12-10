@@ -37,11 +37,7 @@ export const Login = () => {
 				password: values.password,
 			}
 
-			console.log('Отправка запроса входа:', loginData)
-
 			const result = await login(loginData).unwrap()
-
-			console.log('Вход выполнен успешно:', result)
 
 			dispatch(
 				setCredentials({
@@ -56,7 +52,6 @@ export const Login = () => {
 				navigate('/me')
 			}
 		} catch (err) {
-<<<<<<< HEAD
 			console.error('Login error:', err)
 			
 		const error = err as {
@@ -81,28 +76,6 @@ export const Login = () => {
 			error?.error?.message ||
 			error?.message ||
 			'Ошибка входа'
-=======
-			console.error('Ошибка входа:', err)
-
-			const error = err as {
-				status?: number
-				data?: { message?: string; error?: string }
-				error?: { message?: string }
-				message?: string
-				name?: string
-			}
-
-			// Определяем статус ошибки
-			const status = error?.status
-
-			// Получаем сообщение об ошибке из разных возможных мест
-			const errorMessage =
-				error?.data?.message ||
-				error?.data?.error ||
-				error?.error?.message ||
-				error?.message ||
-				'Ошибка входа'
->>>>>>> 112a672 (fix: Починить чат.)
 
 			// Обрабатываем разные типы ошибок
 			if (status === 400) {

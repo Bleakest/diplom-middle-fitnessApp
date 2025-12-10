@@ -103,13 +103,11 @@ export const Chat: React.FC<ChatProps> = ({
 
 				// Обработчик обновления списка чатов
 				const handleChatUpdated = () => {
-					console.log('Chat updated event received, invalidating chats cache')
 					dispatch(chatApi.util.invalidateTags(['Chats']))
 				}
 
 				// Обработчик новых сообщений
 				const handleNewMessage = (message: MessageType) => {
-					console.log('New message received via socket:', message)
 					dispatch(receiveMessage({ chatId: message.chatId, message }))
 
 					// Отмечаем как прочитанное только если это активный чат
@@ -120,18 +118,14 @@ export const Chat: React.FC<ChatProps> = ({
 
 				// Обработчик начала печати
 				const handleUserTyping = (data: { chatId: string; userId: string }) => {
-					console.log('User typing:', data)
-					console.log('Current user ID:', currentUser.id)
 					// Проверяем только что это не наше сообщение
 					if (data.userId !== currentUser.id) {
-						console.log('Dispatching updateTyping TRUE for chatId:', data.chatId)
 						dispatch(updateTyping({ chatId: data.chatId, isTyping: true }))
 					}
 				}
 
 				// Обработчик остановки печати
 				const handleUserStoppedTyping = (data: { chatId: string; userId: string }) => {
-					console.log('User stopped typing:', data)
 					// Проверяем только что это не наше сообщение
 					if (data.userId !== currentUser.id) {
 						dispatch(updateTyping({ chatId: data.chatId, isTyping: false }))
@@ -146,20 +140,17 @@ export const Chat: React.FC<ChatProps> = ({
 
 				// Присоединяемся к комнате чата если есть chatId
 				if (chatId) {
-					console.log('Joining chat room:', chatId)
 					socket.emit('join_chat', chatId)
 				}
 
 				// Cleanup при размонтировании
 				return () => {
-					console.log('Cleaning up socket listeners')
 					socket.off('chat_updated', handleChatUpdated)
 					socket.off('new_message', handleNewMessage)
 					socket.off('user_typing', handleUserTyping)
 					socket.off('user_stopped_typing', handleUserStoppedTyping)
 
 					if (chatId) {
-						console.log('Leaving chat room:', chatId)
 						socket.emit('leave_chat', chatId)
 					}
 				}
@@ -190,13 +181,6 @@ export const Chat: React.FC<ChatProps> = ({
 	const reduxMessages = useAppSelector((state) =>
 		chatId ? state.chat.messages[chatId] || [] : [],
 	)
-
-	// Отладка typing индикатора
-	useEffect(() => {
-		if (chatId) {
-			console.log('Typing status for chatId', chatId, ':', typing)
-		}
-	}, [typing, chatId])
 
 	// Объединяем сообщения из API и Redux, удаляя дубликаты по id
 	const messages = useMemo(() => {
@@ -332,18 +316,10 @@ export const Chat: React.FC<ChatProps> = ({
 	}
 
 	const handleSend = async () => {
-		console.log('handleSend вызвана в:', new Date().toISOString())
-		console.log('chatId:', chatId)
-
-		// Временно убрана проверка chatId для тестирования
-
 		const text = form.getFieldValue('text') || ''
 		const imageFile = fileList.length > 0 ? fileList[0].originFileObj : undefined
 
-		console.log('Отправка сообщения:', { text, hasImage: !!imageFile, chatId })
-
 		if (!text) {
-			console.log('Текст сообщения обязателен')
 			return
 		}
 
@@ -383,7 +359,6 @@ export const Chat: React.FC<ChatProps> = ({
 		}
 
 		try {
-			console.log('Вызов мутации sendMessage...')
 			const messageData: { chatId?: string; text?: string; image?: File } = {}
 			if (chatId) messageData.chatId = chatId
 			if (text) messageData.text = text
@@ -391,11 +366,8 @@ export const Chat: React.FC<ChatProps> = ({
 
 			const result = await sendMessage(messageData).unwrap()
 
-			console.log('Сообщение отправлено успешно:', result)
-
 			// Если чат был создан (chatId был undefined), обновляем chatId
 			if (!chatId && result.message.chatId) {
-				console.log('Чат создан, обновляем chatId:', result.message.chatId)
 				dispatch(setActiveChat(result.message.chatId))
 				// Заменяем временное сообщение на реальное в новом чате
 				dispatch(

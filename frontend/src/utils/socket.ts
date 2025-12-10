@@ -46,13 +46,11 @@ class SocketService {
 			})
 
 			this.socket.on('connect', () => {
-				console.log('Socket connected:', this.socket?.id)
 				this.reconnectAttempts = 0
 				resolve()
 			})
 
 			this.socket.on('disconnect', (reason) => {
-				console.log('Socket disconnected:', reason)
 				if (reason === 'io server disconnect') {
 					// Сервер отключил, не переподключаемся автоматически
 					this.socket?.disconnect()
@@ -63,7 +61,6 @@ class SocketService {
 			})
 
 			this.socket.on('connect_error', (error) => {
-				console.error('Socket connection error:', error)
 				this.handleReconnect()
 				if (this.reconnectAttempts >= this.maxReconnectAttempts) {
 					reject(error)

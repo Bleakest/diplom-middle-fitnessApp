@@ -27,8 +27,6 @@ export const createBaseQueryWithReauth = (baseUrl: string) => {
 		let result = await rawBaseQuery(args, api, extraOptions)
 
 		if (result.error && result.error.status === 401) {
-			console.log('Токен доступа истек, попытка обновления...')
-
 			const refreshResult = await fetchBaseQuery({
 				baseUrl: API_ENDPOINTS.auth,
 				credentials: 'include',
@@ -47,15 +45,13 @@ export const createBaseQueryWithReauth = (baseUrl: string) => {
 				const data = refreshResult.data as { token?: { accessToken?: string } }
 				if (data.token?.accessToken) {
 					localStorage.setItem('token', data.token.accessToken)
-					console.log('Токен обновлен успешно')
 
 					// Повторяем оригинальный запрос с новым токеном
 					result = await rawBaseQuery(args, api, extraOptions)
 				} else {
-					console.log('В ответе обновления отсутствует токен доступа')
+					console.error('В ответе обновления отсутствует токен доступа')
 				}
 			} else {
-				console.log('Обновление токена не удалось, перенаправление на вход')
 				if (typeof window !== 'undefined') {
 					localStorage.removeItem('token')
 					window.location.href = '/login'

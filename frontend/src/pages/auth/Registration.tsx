@@ -96,12 +96,8 @@ export const Registration = () => {
 	const [photoPreviews, setPhotoPreviews] = useState<{ [key: string]: string }>({})
 	const [photoFiles, setPhotoFiles] = useState<{ [key: string]: File }>({})
 	const [form] = Form.useForm()
-<<<<<<< HEAD
 	const theme = useAppSelector((state) => state.ui.theme)
 	
-=======
-
->>>>>>> 112a672 (fix: Починить чат.)
 	// Используем App.useApp() для контекстного message (fix warning)
 	const { message } = App.useApp()
 
@@ -220,7 +216,6 @@ export const Registration = () => {
 	}
 
 	const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
-		console.log('Не удалось:', errorInfo)
 		const errorFields = errorInfo.errorFields.map((field) => field.name[0]).join(', ')
 		message.error(`Заполните обязательные поля: ${errorFields}`)
 	}
