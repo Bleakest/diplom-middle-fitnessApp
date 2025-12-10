@@ -12,7 +12,7 @@ export const Message: React.FC<MessageProps> = ({ msg, onPreview, role }) => (
 	<div
 		className={clsx(
 			'w-fit min-w-[120px] max-w-[65%] px-4 py-3',
-			msg.sender === role ? 'ml-auto' : 'mr-auto',
+			msg.sender.id === role ? 'ml-auto' : 'mr-auto',
 		)}
 		style={{
 			borderRadius: 15,
