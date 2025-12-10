@@ -27,10 +27,16 @@ const { Text } = Typography
 type ChatProps = {
 	role: 'client' | 'trainer'
 	chatId?: string // Опциональный - если не передан, возьмем из списка чатов
+	partnerId?: string // ID партнера для поиска конкретного чата
 	partnerName?: string // Имя собеседника
 }
 
-export const Chat: React.FC<ChatProps> = ({ role, chatId: propChatId, partnerName }) => {
+export const Chat: React.FC<ChatProps> = ({
+	role,
+	chatId: propChatId,
+	partnerId,
+	partnerName,
+}) => {
 	const dispatch = useAppDispatch()
 	const user = useAppSelector((state) => state.auth.user)
 
@@ -38,7 +44,24 @@ export const Chat: React.FC<ChatProps> = ({ role, chatId: propChatId, partnerNam
 	const { data: chatsData } = useGetChatsQuery(undefined, { skip: !user })
 
 	// Определить реальный chatId
-	const chatId = propChatId || (chatsData?.chats.length ? chatsData.chats[0].id : null)
+	let chatId: string | undefined = propChatId
+
+	if (!chatId && chatsData?.chats.length) {
+		if (partnerId) {
+			// Ищем чат с конкретным партнером
+			const targetChat = chatsData.chats.find((chat) => {
+				if (role === 'client') {
+					return chat.trainerId === partnerId
+				} else {
+					return chat.clientId === partnerId
+				}
+			})
+			chatId = targetChat?.id
+		} else {
+			// Берем первый чат из списка
+			chatId = chatsData.chats[0].id
+		}
+	}
 
 	// RTK Query hooks
 	const {

@@ -481,6 +481,7 @@ a:hover {
 	background: #72a9c9;
 	border-bottom: 1.5px solid #dbe4ee;
 	border-radius: 18px;
+	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
 	gap: 18px;
 }
