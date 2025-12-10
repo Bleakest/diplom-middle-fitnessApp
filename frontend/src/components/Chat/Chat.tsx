@@ -15,25 +15,43 @@ const getInitialMessages = (role: 'client' | 'trainer'): MessageType[] => {
 	if (role === 'client') {
 		return [
 			{
-				id: 1,
+				id: 'demo-1',
+				chatId: 'demo-chat',
+				senderId: 'trainer',
 				text: 'Здравствуйте! Я ваш тренер. Готов помочь вам достичь ваших целей! 💪',
 				createdAt: '10:00',
-				sender: 'trainer',
+				isRead: true,
+				sender: {
+					id: 'trainer',
+					name: 'Тренер',
+				},
 			},
 			{
-				id: 2,
+				id: 'demo-2',
+				chatId: 'demo-chat',
+				senderId: 'trainer',
 				text: 'Как прошла ваша тренировка на этой неделе?',
 				createdAt: '10:01',
-				sender: 'trainer',
+				isRead: true,
+				sender: {
+					id: 'trainer',
+					name: 'Тренер',
+				},
 			},
 		]
 	}
 	return [
 		{
-			id: 1,
+			id: 'demo-3',
+			chatId: 'demo-chat',
+			senderId: 'client',
 			text: 'Здравствуйте! Я записался к вам на тренировки',
 			createdAt: '09:30',
-			sender: 'client',
+			isRead: true,
+			sender: {
+				id: 'client',
+				name: 'Клиент',
+			},
 		},
 	]
 }
@@ -44,11 +62,7 @@ type ChatProps = {
 	partnerName?: string // Имя собеседника
 }
 
-export const Chat: React.FC<ChatProps> = ({
-	role,
-	chatId: propChatId,
-	partnerName,
-}) => {
+export const Chat: React.FC<ChatProps> = ({ role, chatId: propChatId, partnerName }) => {
 	// Формируем chatId
 	const chatId = propChatId || (role === 'client' ? 'client_trainer' : 'trainer_client')
 
@@ -89,7 +103,7 @@ export const Chat: React.FC<ChatProps> = ({
 			if (e.target?.result) {
 				setFileList([
 					{
-						uid: info.file.uid ? Number(info.file.uid) : Date.now(),
+						uid: info.file.uid,
 						name: info.file.name,
 						url: e.target.result as string,
 					},
@@ -120,13 +134,16 @@ export const Chat: React.FC<ChatProps> = ({
 		}
 
 		const newMessage: MessageType = {
-			id: Date.now(),
+			id: 'temp-' + Date.now().toString(),
+			chatId,
+			senderId: role,
 			text,
-			createdAt: new Date().toLocaleTimeString('ru-RU', {
-				hour: '2-digit',
-				minute: '2-digit',
-			}),
-			sender: role,
+			createdAt: new Date().toISOString(),
+			isRead: true,
+			sender: {
+				id: role,
+				name: role === 'client' ? 'Клиент' : 'Тренер',
+			},
 			imageUrl,
 		}
 
@@ -145,7 +162,10 @@ export const Chat: React.FC<ChatProps> = ({
 		year: 'numeric',
 	})
 
-	const title = role === 'client' ? 'Чат с тренером' : `Чат с клиентом${partnerName ? `: ${partnerName}` : ''}`
+	const title =
+		role === 'client'
+			? 'Чат с тренером'
+			: `Чат с клиентом${partnerName ? `: ${partnerName}` : ''}`
 
 	return (
 		<div
