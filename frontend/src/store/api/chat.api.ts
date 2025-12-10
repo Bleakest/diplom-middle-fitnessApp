@@ -3,20 +3,52 @@ import { API_ENDPOINTS } from '../../config/api.config'
 
 export interface Message {
 	id: string
+	chatId: string
 	senderId: string
-	receiverId: string
-	message: string
-	timestamp: string
-	read: boolean
-	senderName: string
-	senderAvatar?: string
+	text: string
+	imageUrl?: string
+	createdAt: string
+	isRead: boolean
+	sender: {
+		id: string
+		name: string
+		photo?: string
+	}
 }
 
 export interface Chat {
 	id: string
-	participant1: string
-	participant2: string
+	trainerId: string
+	clientId: string
+	createdAt: string
+	updatedAt: string
+	client?: {
+		id: string
+		name: string
+		photo?: string
+	}
+	trainer?: {
+		id: string
+		name: string
+		photo?: string
+	}
+	lastMessage?: Message | null
+	unreadCount: number
+	isFavorite?: boolean
+}
+
+export interface GetMessagesResponse {
 	messages: Message[]
+	pagination: {
+		page: number
+		limit: number
+		total: number
+		totalPages: number
+	}
+}
+
+export interface SendMessageResponse {
+	message: Message
 }
 
 export const chatApi = createApi({
@@ -32,50 +64,36 @@ export const chatApi = createApi({
 			return headers
 		},
 	}),
-	tagTypes: ['Messages'],
+	tagTypes: ['Messages', 'Chats'],
 	endpoints: (builder) => ({
-		getMessages: builder.query<Message[], { userId1: string; userId2: string }>({
-			query: ({ userId1, userId2 }) => `/${userId1}/${userId2}`,
+		getChats: builder.query<Chat[], void>({
+			query: () => '/',
+			providesTags: ['Chats'],
+		}),
+
+		getMessages: builder.query<
+			GetMessagesResponse,
+			{ chatId: string; page?: number; limit?: number }
+		>({
+			query: ({ chatId, ...params }) => ({
+				url: `/${chatId}/messages`,
+				params,
+			}),
 			providesTags: ['Messages'],
 		}),
 
 		sendMessage: builder.mutation<
-			Message,
-			{
-				senderId: string
-				receiverId: string
-				message: string
-				senderName: string
-				senderAvatar?: string
-			}
+			SendMessageResponse,
+			{ chatId: string; text: string; image?: string }
 		>({
-			query: (messageData) => ({
-				url: '/send',
+			query: ({ chatId, ...body }) => ({
+				url: `/${chatId}/messages`,
 				method: 'POST',
-				body: messageData,
+				body,
 			}),
-			invalidatesTags: ['Messages'],
-		}),
-
-		markMessagesAsRead: builder.mutation<void, { userId: string; contactId: string }>({
-			query: ({ userId, contactId }) => ({
-				url: '/mark-read',
-				method: 'POST',
-				body: { userId, contactId },
-			}),
-			invalidatesTags: ['Messages'],
-		}),
-
-		getTrainerChats: builder.query<Chat[], string>({
-			query: (trainerId) => `/trainer/${trainerId}/chats`,
-			providesTags: ['Messages'],
+			invalidatesTags: ['Messages', 'Chats'],
 		}),
 	}),
 })
 
-export const {
-	useGetMessagesQuery,
-	useSendMessageMutation,
-	useMarkMessagesAsReadMutation,
-	useGetTrainerChatsQuery,
-} = chatApi
+export const { useGetChatsQuery, useGetMessagesQuery, useSendMessageMutation } = chatApi
