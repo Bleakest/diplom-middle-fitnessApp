@@ -27,7 +27,7 @@
 
 	/* Вторичный акцент - тёплый коралловый */
 	--secondary: oklch(65% 0.18 25);
-	--secondary-hover: oklch(60% 0.20 25);
+	--secondary-hover: oklch(60% 0.2 25);
 
 	/* Акцент - глубокий синий */
 	--accent: oklch(55% 0.15 250);
@@ -75,7 +75,7 @@
 
 	/* Основной акцент - яркий изумрудный */
 	--primary: oklch(70% 0.18 170);
-	--primary-hover: oklch(75% 0.20 170);
+	--primary-hover: oklch(75% 0.2 170);
 	--primary-light: oklch(30% 0.08 170);
 
 	/* Вторичный акцент - мягкий коралловый */
@@ -90,7 +90,7 @@
 	--info: oklch(70% 0.14 240);
 	--success: oklch(70% 0.18 150);
 	--warning: oklch(80% 0.18 75);
-	--danger: oklch(70% 0.20 25);
+	--danger: oklch(70% 0.2 25);
 
 	/* Градиенты */
 	--gradient-start: oklch(35% 0.12 170);
@@ -132,7 +132,12 @@ a:hover {
    TAILWIND УТИЛИТЫ
    =========================== */
 @utility gradient-bg {
-	background: linear-gradient(135deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+	background: linear-gradient(
+		135deg,
+		var(--gradient-start),
+		var(--gradient-mid),
+		var(--gradient-end)
+	);
 	background-attachment: fixed;
 	min-height: 100vh;
 	background-size: 200% 200%;
@@ -140,7 +145,8 @@ a:hover {
 }
 
 @keyframes gradient-shift {
-	0%, 100% {
+	0%,
+	100% {
 		background-position: 0% 50%;
 	}
 	50% {
@@ -478,9 +484,7 @@ a:hover {
 	display: flex;
 	flex-direction: column;
 	padding: 12px 16px;
-	background: #72a9c9;
-	border-bottom: 1.5px solid #dbe4ee;
-	border-radius: 18px;
+	background: #ffffff;
 	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
 	gap: 18px;

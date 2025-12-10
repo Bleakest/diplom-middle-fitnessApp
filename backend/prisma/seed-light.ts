@@ -1032,7 +1032,8 @@ async function main() {
 	const numComments = faker.number.int({ min: 50, max: 80 })
 
 	// Сообщения для чатов
-	const chatMessages = [
+	// Сообщения для чатов
+	const trainerMessages = [
 		// Приветствия и знакомство
 		'Привет! Я ваш персональный тренер. Расскажите о своих целях и опыте тренировок.',
 		'Здравствуйте! Рад познакомиться. Давайте обсудим вашу программу тренировок.',
@@ -1057,7 +1058,9 @@ async function main() {
 		'Как вам тренировки? Что нравится, что не очень?',
 		'Чувствуете ли вы прогресс? Усталость, силовые показатели?',
 		'Давайте скорректируем программу под ваши ощущения.',
+	]
 
+	const clientMessages = [
 		// Ответы клиентов
 		'Привет! Хочу похудеть на 10 кг. Раньше занимался в зале.',
 		'Здравствуйте! Цель - набрать мышечную массу. Опыт небольшой.',
@@ -1146,7 +1149,9 @@ async function main() {
 		for (let i = 0; i < numMessages; i++) {
 			const isTrainerMessage = i % 2 === 0 // Чередуем отправителей
 			const senderId = isTrainerMessage ? relation.trainerId : relation.clientId
-			const messageText = faker.helpers.arrayElement(chatMessages)
+			const messageText = isTrainerMessage
+				? faker.helpers.arrayElement(trainerMessages)
+				: faker.helpers.arrayElement(clientMessages)
 
 			messages.push({
 				chatId: chat.id,
