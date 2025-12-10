@@ -7,6 +7,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-v20+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Three.js](https://img.shields.io/badge/Three.js-0.160-000000?style=for-the-badge&logo=threedotjs&logoColor=white)](https://threejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 
 **Связь между тренерами и клиентами • Персональные планы питания • Отслеживание прогресса**
@@ -36,6 +37,7 @@
 - Персональные планы питания
 - Фиксация антропометрических данных
 - Фото-отчёты прогресса
+- 3D визуализация прогресса
 - Прямая связь с тренером через чат
 
 </td>
@@ -55,6 +57,8 @@
 │   • Фото front/side/    • Подкатегории        • Комментарии                 │
 │     back                • Дни и приёмы        • Система                     │
 │   • Графики динамики    • Цикличность           приглашений                 │
+│   • 3D визуализация     • Автоматический                                    │
+│     прогресса             расчёт циклов                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -103,7 +107,9 @@
 | Ant Design | UI компоненты |
 | Tailwind CSS | Стилизация |
 | Vite | Сборка |
-| Recharts | Графики |
+| Recharts | 2D графики |
+| Three.js | 3D визуализация |
+| React Three Fiber | React интеграция для Three.js |
 | Socket.IO Client | Real-time |
 
 </td>
@@ -219,6 +225,7 @@ docker-compose up -d
 | [🔄 CI/CD Pipeline](./doc/CI_CD.md) | Автоматизация деплоя |
 | [🔐 Настройка секретов](./.github/SECRETS.md) | GitHub Secrets |
 | [📦 Redux Store](./frontend/src/store/README.md) | Полная документация по Store |
+| [🎮 3D Визуализация](./THREEJS_FEATURE.md) | Three.js интеграция и возможности |
 
 ### API документация
 
@@ -253,7 +260,6 @@ docker-compose up -d
 ```
 
 ---
-
 
 ## 🧑‍💻 Команда разработки
 
