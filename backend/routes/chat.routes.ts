@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { sendMessage } from '../controllers/chat.js'
+import { sendMessage, getMessages } from '../controllers/chat.js'
 import { authGuard } from '../middleware/authGuard.js'
 import { hasRole } from '../middleware/hasRole.js'
 import {
@@ -7,12 +7,38 @@ import {
 	SendMessageDTO,
 	SendMessageParamsDTO,
 } from '../validation/zod/chat/send-message.dto.js'
+import {
+	GetMessagesSchemaZod,
+	GetMessagesQueryDTO,
+	GetMessagesParamsDTO,
+} from '../validation/zod/chat/get-messages.dto.js'
 import multipart from '@fastify/multipart'
 import { cleanupFilesOnError } from '../utils/uploadPhotos.js'
 import { MAX_PHOTO_SIZE, CHAT_IMAGES_SUBFOLDER } from '../consts/file.js'
 
 export default async function chatRoutes(app: FastifyInstance) {
 	app.register(multipart)
+
+	// Получение истории сообщений чата
+	app.get(
+		'/chat/:chatId/messages',
+		{
+			preHandler: [authGuard, hasRole(['CLIENT', 'TRAINER'])],
+			schema: {
+				querystring: GetMessagesSchemaZod.querystring,
+				params: GetMessagesSchemaZod.params,
+			},
+		},
+		async (req, reply) => {
+			const result = await getMessages(
+				(req.params as GetMessagesParamsDTO).chatId,
+				req.user.id,
+				req.query as GetMessagesQueryDTO,
+			)
+
+			return reply.status(200).send(result)
+		},
+	)
 
 	// Отправка сообщения в чат
 	app.post(
