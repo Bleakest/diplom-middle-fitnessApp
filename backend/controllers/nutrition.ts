@@ -56,7 +56,11 @@ export async function getClientNutritionPlan(req: FastifyRequest, reply: Fastify
 			},
 		})
 		if (!activeTrainer) {
-			throw ApiError.forbidden('Доступ запрещен: У вас нет активного тренера')
+			// Если у клиента нет активного тренера, возвращаем пустой план
+			return reply.status(200).send({
+				plan: null,
+				days: [],
+			})
 		}
 	} else {
 		throw ApiError.forbidden('Доступ запрещен')
