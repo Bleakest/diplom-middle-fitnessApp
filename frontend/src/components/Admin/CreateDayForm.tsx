@@ -242,13 +242,15 @@ export const CreateDayForm = ({
 				Добавить прием пищи
 			</Button>
 
-			<Form.Item className='mt-6 mb-0'>
-				<Space>
-					<Button onClick={onCancel}>Отмена</Button>
-					<Button type='primary' htmlType='submit'>
+			<Form.Item className='mt-8 mb-4 pt-6 pb-2 border-t border-gray-200'>
+				<div className='flex justify-end gap-3'>
+					<Button onClick={onCancel} size='large'>
+						Отмена
+					</Button>
+					<Button type='primary' htmlType='submit' size='large'>
 						{day ? 'Сохранить изменения' : 'Создать день'}
 					</Button>
-				</Space>
+				</div>
 			</Form.Item>
 		</Form>
 	)
