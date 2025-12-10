@@ -9,6 +9,7 @@ type InputPanelProps = {
 	form: ReturnType<typeof Form.useForm>[0]
 	inputValue: string
 	setInputValue: (val: string) => void
+	onInputChange?: (val: string) => void
 	fileList: ChatUploadFile[]
 	onUploadChange: (info: UploadChangeParam<UploadFile>) => void
 	onRemoveImage: () => void
@@ -25,6 +26,7 @@ export const InputPanel: React.FC<InputPanelProps> = ({
 	form,
 	inputValue,
 	setInputValue,
+	onInputChange,
 	fileList,
 	onUploadChange,
 	onRemoveImage,
@@ -72,8 +74,13 @@ export const InputPanel: React.FC<InputPanelProps> = ({
 							size='large'
 							value={inputValue}
 							onChange={(e) => {
-								setInputValue(e.target.value)
-								form.setFieldsValue({ text: e.target.value })
+								const value = e.target.value
+								if (onInputChange) {
+									onInputChange(value)
+								} else {
+									setInputValue(value)
+									form.setFieldsValue({ text: value })
+								}
 							}}
 							className='input-panel-input'
 							autoComplete='off'
@@ -100,7 +107,6 @@ export const InputPanel: React.FC<InputPanelProps> = ({
 
 				<Button
 					type='primary'
-					htmlType='submit'
 					size='large'
 					disabled={disabledSend}
 					loading={loading}

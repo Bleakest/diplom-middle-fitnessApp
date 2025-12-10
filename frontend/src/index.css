@@ -387,10 +387,10 @@ a:hover {
 
 /* === АНИМАЦИЯ НАБОРА ТЕКСТА === */
 .typing-dot {
-	width: 6px;
-	height: 6px;
+	width: 7px;
+	height: 7px;
 	border-radius: 50%;
-	background: #999;
+	background: rgba(0, 0, 0, 0.9);
 	animation: typing 1.4s infinite ease-in-out;
 }
 
@@ -477,13 +477,15 @@ a:hover {
 	flex: 1;
 	display: flex;
 	flex-direction: column;
-	padding: 24px 24px 0 24px;
+	padding: 12px 16px;
 	background: #72a9c9;
 	border-bottom: 1.5px solid #dbe4ee;
 	border-radius: 18px;
 	margin-top: 0.5rem;
 	margin-bottom: 0.5rem;
 	gap: 18px;
+	max-height: 500px;
+	overflow-y: auto;
 }
 
 .chat-empty-state {
@@ -514,10 +516,7 @@ a:hover {
 	max-width: 65%;
 	padding: 12px 16px;
 	border-radius: 15px;
-	background: #ffffff;
-	border: 1.5px solid #dbe4ee;
 	box-shadow: 0 2px 8px 0 rgba(90, 120, 150, 0.04);
-	color: #000000;
 	transition: background 0.2s;
 	position: relative;
 	display: flex;
@@ -527,30 +526,40 @@ a:hover {
 .message-bubble-own {
 	margin-left: auto;
 	margin-right: 0;
+	background: #1890ff;
+	border: 1.5px solid #1890ff;
+	color: #ffffff;
+}
+
+.message-bubble-own .message-timestamp {
+	color: rgba(255, 255, 255, 0.8);
 }
 
 .message-bubble-other {
 	margin-right: auto;
 	margin-left: 0;
+	background: #ffffff;
+	border: 1.5px solid #dbe4ee;
+	color: #000000;
 }
 
 .message-bubble-error {
 	background: #fff2f0;
 	border-color: #ffccc7;
+	color: #000000;
 }
 
 .message-timestamp {
-	font-size: 12px;
+	font-size: 11px;
 	color: #8d8d8d;
-	position: absolute;
-	top: 8px;
-	right: 16px;
+	margin-top: 4px;
+	text-align: right;
 }
 
 .message-content {
-	margin-top: 18px;
 	display: flex;
 	align-items: center;
+	gap: 8px;
 }
 
 .message-text {
@@ -587,15 +596,21 @@ a:hover {
 	opacity: 0.7;
 }
 
+/* Обертка для индикатора набора текста */
+.chat-typing-wrapper {
+	padding: 8px 24px;
+}
+
 /* Индикатор набора текста */
 .typing-indicator {
 	display: flex;
 	align-items: center;
-	padding: 8px 16px;
-	margin-bottom: 8px;
-	font-size: 14px;
-	color: #666;
+	padding: 8px 12px;
+	font-size: 13px;
+	color: rgba(0, 0, 0, 0.9);
 	font-style: italic;
+	border-radius: 12px;
+	width: fit-content;
 }
 
 .typing-dots {

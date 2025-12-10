@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Form, Typography, Spin, Alert, message } from 'antd'
 import type { UploadChangeParam, UploadFile } from 'antd/es/upload'
 import type { MessageType, ChatUploadFile } from '../../types'
@@ -14,13 +14,17 @@ import {
 	markAsRead,
 	updateTyping,
 	updateMessageStatus,
+	replaceMessage,
 } from '../../store/slices/chat.slice'
+import { setUser } from '../../store/slices/auth.slice'
 import {
 	useGetMessagesQuery,
 	useSendMessageMutation,
 	useGetChatsQuery,
 } from '../../store/api/chat.api'
+import { chatApi } from '../../store/api/chat.api'
 import { socketService } from '../../utils/socket'
+import { useGetMeQuery } from '../../store/api/user.api'
 
 const { Text } = Typography
 
@@ -38,32 +42,134 @@ export const Chat: React.FC<ChatProps> = ({
 	partnerName,
 }) => {
 	const dispatch = useAppDispatch()
+	const token = useAppSelector((state) => state.auth.token)
 	const user = useAppSelector((state) => state.auth.user)
 
+	// Загружаем данные пользователя если есть токен, но нет пользователя
+	const { data: meData } = useGetMeQuery(undefined, {
+		skip: !token || !!user,
+	})
+
+	// Используем данные пользователя из Redux или из API
+	const currentUser = user || meData?.user
+
+	// Сохраняем пользователя в Redux если он загружен из API
+	useEffect(() => {
+		if (meData?.user && !user) {
+			dispatch(setUser(meData.user))
+		}
+	}, [meData?.user, user, dispatch])
+
 	// Получить список чатов
-	const { data: chatsData } = useGetChatsQuery(undefined, { skip: !user })
+	const { data: chatsData } = useGetChatsQuery(undefined, { skip: !currentUser })
 
 	// Определить реальный chatId
-	let chatId: string | undefined = propChatId
+	const chatId = useMemo(() => {
+		let id: string | undefined = propChatId
 
-	if (!chatId && chatsData?.chats.length) {
-		if (partnerId) {
-			// Ищем чат с конкретным партнером
-			const targetChat = chatsData.chats.find((chat) => {
-				if (role === 'client') {
-					return chat.trainerId === partnerId
-				} else {
-					return chat.clientId === partnerId
-				}
-			})
-			chatId = targetChat?.id
-		} else {
-			// Берем первый чат из списка
-			chatId = chatsData.chats[0].id
+		if (!id && chatsData?.chats.length) {
+			if (partnerId) {
+				// Ищем чат с конкретным партнером
+				const targetChat = chatsData.chats.find((chat) => {
+					if (role === 'client') {
+						return chat.trainerId === partnerId
+					} else {
+						return chat.clientId === partnerId
+					}
+				})
+				id = targetChat?.id
+			} else {
+				// Берем первый чат из списка
+				id = chatsData.chats[0].id
+			}
 		}
-	}
 
-	// RTK Query hooks
+		return id
+	}, [propChatId, chatsData, partnerId, role])
+
+	// Подключение к Socket.IO и подписка на события
+	useEffect(() => {
+		if (!currentUser) return
+
+		const connectAndSubscribe = async () => {
+			try {
+				await socketService.connect()
+				const socket = socketService.getSocket()
+
+				if (!socket) {
+					console.error('Socket not available after connect')
+					return
+				}
+
+				// Обработчик обновления списка чатов
+				const handleChatUpdated = () => {
+					console.log('Chat updated event received, invalidating chats cache')
+					dispatch(chatApi.util.invalidateTags(['Chats']))
+				}
+
+				// Обработчик новых сообщений
+				const handleNewMessage = (message: MessageType) => {
+					console.log('New message received via socket:', message)
+					dispatch(receiveMessage({ chatId: message.chatId, message }))
+
+					// Отмечаем как прочитанное только если это активный чат
+					if (message.chatId === chatId) {
+						dispatch(markAsRead(message.chatId))
+					}
+				}
+
+				// Обработчик начала печати
+				const handleUserTyping = (data: { chatId: string; userId: string }) => {
+					console.log('User typing:', data)
+					console.log('Current user ID:', currentUser.id)
+					// Проверяем только что это не наше сообщение
+					if (data.userId !== currentUser.id) {
+						console.log('Dispatching updateTyping TRUE for chatId:', data.chatId)
+						dispatch(updateTyping({ chatId: data.chatId, isTyping: true }))
+					}
+				}
+
+				// Обработчик остановки печати
+				const handleUserStoppedTyping = (data: { chatId: string; userId: string }) => {
+					console.log('User stopped typing:', data)
+					// Проверяем только что это не наше сообщение
+					if (data.userId !== currentUser.id) {
+						dispatch(updateTyping({ chatId: data.chatId, isTyping: false }))
+					}
+				}
+
+				// Подписываемся на события
+				socket.on('chat_updated', handleChatUpdated)
+				socket.on('new_message', handleNewMessage)
+				socket.on('user_typing', handleUserTyping)
+				socket.on('user_stopped_typing', handleUserStoppedTyping)
+
+				// Присоединяемся к комнате чата если есть chatId
+				if (chatId) {
+					console.log('Joining chat room:', chatId)
+					socket.emit('join_chat', chatId)
+				}
+
+				// Cleanup при размонтировании
+				return () => {
+					console.log('Cleaning up socket listeners')
+					socket.off('chat_updated', handleChatUpdated)
+					socket.off('new_message', handleNewMessage)
+					socket.off('user_typing', handleUserTyping)
+					socket.off('user_stopped_typing', handleUserStoppedTyping)
+
+					if (chatId) {
+						console.log('Leaving chat room:', chatId)
+						socket.emit('leave_chat', chatId)
+					}
+				}
+			} catch (error) {
+				console.error('Failed to connect socket:', error)
+			}
+		}
+
+		connectAndSubscribe()
+	}, [currentUser, chatId, dispatch])
 	const {
 		data: messagesData,
 		isLoading: messagesLoading,
@@ -81,9 +187,32 @@ export const Chat: React.FC<ChatProps> = ({
 
 	// Получить состояние чата из Redux
 	const typing = useAppSelector((state) => (chatId ? state.chat.typing[chatId] : false))
+	const reduxMessages = useAppSelector((state) =>
+		chatId ? state.chat.messages[chatId] || [] : [],
+	)
 
-	// Сообщения из API или пустой массив
-	const messages = messagesData?.messages || []
+	// Отладка typing индикатора
+	useEffect(() => {
+		if (chatId) {
+			console.log('Typing status for chatId', chatId, ':', typing)
+		}
+	}, [typing, chatId])
+
+	// Объединяем сообщения из API и Redux, удаляя дубликаты по id
+	const messages = useMemo(() => {
+		const apiMessages = messagesData?.messages || []
+		const allMessages = [...apiMessages, ...reduxMessages]
+
+		// Удаляем дубликаты по id
+		const uniqueMessages = Array.from(
+			new Map(allMessages.map((msg) => [msg.id, msg])).values(),
+		)
+
+		// Сортируем по времени создания
+		return uniqueMessages.sort(
+			(a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+		)
+	}, [messagesData?.messages, reduxMessages])
 
 	// Обработка онлайн/оффлайн статуса
 	useEffect(() => {
@@ -98,49 +227,6 @@ export const Chat: React.FC<ChatProps> = ({
 			window.removeEventListener('offline', handleOffline)
 		}
 	}, [])
-
-	// WebSocket подключение
-	useEffect(() => {
-		if (!chatId) return
-
-		const connectSocket = async () => {
-			try {
-				await socketService.connect()
-				socketService.joinChat(chatId)
-
-				// Подписка на новые сообщения
-				const socket = socketService.getSocket()
-				if (socket) {
-					socket.on('new_message', (message: MessageType) => {
-						if (message.chatId === chatId) {
-							dispatch(receiveMessage({ chatId, message }))
-						}
-					})
-
-					// Подписка на индикатор печати
-					socket.on('user_typing', (data: { chatId: string; userId: string }) => {
-						if (data.chatId === chatId && data.userId !== user?.id) {
-							dispatch(updateTyping({ chatId, isTyping: true }))
-						}
-					})
-
-					socket.on('user_stopped_typing', (data: { chatId: string; userId: string }) => {
-						if (data.chatId === chatId && data.userId !== user?.id) {
-							dispatch(updateTyping({ chatId, isTyping: false }))
-						}
-					})
-				}
-			} catch (error) {
-				console.error('Failed to connect socket:', error)
-			}
-		}
-
-		connectSocket()
-
-		return () => {
-			socketService.leaveChat(chatId)
-		}
-	}, [chatId, dispatch, user?.id])
 
 	// Отмечаем сообщения как прочитанные при открытии чата
 	useEffect(() => {
@@ -191,13 +277,13 @@ export const Chat: React.FC<ChatProps> = ({
 		const file = info.file.originFileObj ?? info.file
 
 		if (!(file instanceof Blob)) {
-			console.error('Selected file is not a Blob/File:', file)
+			console.error('Выбранный файл не является Blob/File:', file)
 			return
 		}
 
 		// Валидация типа файла
 		if (!file.type.startsWith('image/')) {
-			console.error('Only image files are allowed')
+			console.error('Разрешены только файлы изображений')
 			message.error(
 				'Разрешены только изображения. Выберите файл с расширением .jpg, .png, .gif и т.д.',
 			)
@@ -207,7 +293,7 @@ export const Chat: React.FC<ChatProps> = ({
 		// Валидация размера файла (500KB = 500 * 1024 байт)
 		const maxSize = 500 * 1024
 		if (file.size > maxSize) {
-			console.error('File size exceeds 500KB limit')
+			console.error('Размер файла превышает лимит 500KB')
 			message.error('Размер файла превышает 500KB. Выберите файл меньшего размера.')
 			return
 		}
@@ -226,7 +312,7 @@ export const Chat: React.FC<ChatProps> = ({
 			}
 		}
 		reader.onerror = () => {
-			console.error('Failed to read file')
+			console.error('Не удалось прочитать файл')
 			message.error('Не удалось прочитать файл. Попробуйте выбрать другое изображение.')
 			setFileList([]) // Очищаем список файлов при ошибке
 		}
@@ -246,12 +332,18 @@ export const Chat: React.FC<ChatProps> = ({
 	}
 
 	const handleSend = async () => {
-		if (!chatId) return
+		console.log('handleSend вызвана в:', new Date().toISOString())
+		console.log('chatId:', chatId)
+
+		// Временно убрана проверка chatId для тестирования
 
 		const text = form.getFieldValue('text') || ''
 		const imageFile = fileList.length > 0 ? fileList[0].originFileObj : undefined
 
-		if (!text && !imageFile) {
+		console.log('Отправка сообщения:', { text, hasImage: !!imageFile, chatId })
+
+		if (!text) {
+			console.log('Текст сообщения обязателен')
 			return
 		}
 
@@ -259,22 +351,22 @@ export const Chat: React.FC<ChatProps> = ({
 		const tempMessageId = `temp-${Date.now()}`
 		const tempMessage: MessageType = {
 			id: tempMessageId,
-			chatId,
-			senderId: user?.id || 'current-user',
+			chatId: chatId || 'temp-chat', // Временно используем temp-chat, обновим после отправки
+			senderId: currentUser?.id || 'current-user',
 			text: text || '',
 			imageUrl: imageFile ? URL.createObjectURL(imageFile) : undefined,
 			createdAt: new Date().toISOString(),
 			isRead: false,
 			sender: {
-				id: user?.id || 'current-user',
-				name: user?.name || 'Вы',
-				photo: user?.photo || undefined,
+				id: currentUser?.id || 'current-user',
+				name: currentUser?.name || 'Вы',
+				photo: currentUser?.photo || undefined,
 			},
 			status: 'sending',
 		}
 
 		// Добавить временное сообщение в локальное состояние
-		dispatch(addMessage({ chatId, message: tempMessage }))
+		dispatch(addMessage({ chatId: chatId || 'temp-chat', message: tempMessage }))
 
 		// Очистить форму сразу
 		form.resetFields()
@@ -291,21 +383,53 @@ export const Chat: React.FC<ChatProps> = ({
 		}
 
 		try {
-			await sendMessage({
-				chatId,
-				text: text || undefined,
-				image: imageFile,
-			}).unwrap()
+			console.log('Вызов мутации sendMessage...')
+			const messageData: { chatId?: string; text?: string; image?: File } = {}
+			if (chatId) messageData.chatId = chatId
+			if (text) messageData.text = text
+			if (imageFile) messageData.image = imageFile
 
-			// Обновить статус временного сообщения на 'sent'
-			dispatch(updateMessageStatus({ chatId, messageId: tempMessageId, status: 'sent' }))
+			const result = await sendMessage(messageData).unwrap()
+
+			console.log('Сообщение отправлено успешно:', result)
+
+			// Если чат был создан (chatId был undefined), обновляем chatId
+			if (!chatId && result.message.chatId) {
+				console.log('Чат создан, обновляем chatId:', result.message.chatId)
+				dispatch(setActiveChat(result.message.chatId))
+				// Заменяем временное сообщение на реальное в новом чате
+				dispatch(
+					replaceMessage({
+						chatId: 'temp-chat',
+						tempMessageId,
+						realMessage: result.message,
+					}),
+				)
+				// Перезагружаем список чатов
+				dispatch(chatApi.util.invalidateTags(['Chats']))
+			} else {
+				// Заменяем временное сообщение на реальное
+				dispatch(
+					replaceMessage({
+						chatId: chatId || result.message.chatId,
+						tempMessageId,
+						realMessage: result.message,
+					}),
+				)
+			}
 
 			// Заменить временное сообщение на реальное (если нужно)
 			// В идеале сервер должен вернуть то же сообщение, но с правильным ID
 		} catch (error) {
-			console.error('Failed to send message:', error)
+			console.error('Не удалось отправить сообщение:', error)
 			// Обновить статус на 'error'
-			dispatch(updateMessageStatus({ chatId, messageId: tempMessageId, status: 'error' }))
+			dispatch(
+				updateMessageStatus({
+					chatId: chatId || 'temp-chat',
+					messageId: tempMessageId,
+					status: 'error',
+				}),
+			)
 			message.error('Не удалось отправить сообщение. Попробуйте еще раз.')
 		}
 	}
@@ -366,35 +490,46 @@ export const Chat: React.FC<ChatProps> = ({
 
 			{/* Сообщения или приветственное сообщение */}
 			{!messagesLoading && !messagesError && (
-				<div className='chat-messages-container'>
-					{messages.length === 0 ? (
-						<div className='chat-empty-state'>
-							<div className='chat-empty-message'>
-								<Text type='secondary' className='text-base'>
-									{role === 'client'
-										? '👋 Привет! Напишите вашему тренеру, чтобы начать общение'
-										: '👋 Привет! Напишите вашему клиенту, чтобы начать общение'}
-								</Text>
-								<Text type='secondary' className='text-sm chat-empty-subtitle'>
-									{role === 'client'
-										? 'Здесь вы можете обсудить тренировки, питание и прогресс'
-										: 'Здесь вы можете обсудить тренировки, питание и прогресс с клиентом'}
-								</Text>
+				<>
+					<div className='chat-messages-container'>
+						{messages.length === 0 ? (
+							<div className='chat-empty-state'>
+								<div className='chat-empty-message'>
+									<Text type='secondary' className='text-base'>
+										{role === 'client'
+											? '👋 Привет! Напишите вашему тренеру, чтобы начать общение'
+											: '👋 Привет! Напишите вашему клиенту, чтобы начать общение'}
+									</Text>
+									<Text type='secondary' className='text-sm chat-empty-subtitle'>
+										{role === 'client'
+											? 'Здесь вы можете обсудить тренировки, питание и прогресс'
+											: 'Здесь вы можете обсудить тренировки, питание и прогресс с клиентом'}
+									</Text>
+								</div>
 							</div>
+						) : (
+							<MessageList
+								messages={messages}
+								onPreview={handlePreview}
+								currentUserId={currentUser?.id}
+							/>
+						)}
+					</div>
+
+					{/* Индикатор печати вне скроллящегося контейнера */}
+					{typing && messages.length > 0 && (
+						<div className='chat-typing-wrapper'>
+							<TypingIndicator />
 						</div>
-					) : (
-						<>
-							<MessageList messages={messages} onPreview={handlePreview} role={role} />
-							{typing && <TypingIndicator />}
-						</>
 					)}
-				</div>
+				</>
 			)}
 
 			<InputPanel
 				form={form}
 				inputValue={inputValue}
 				setInputValue={setInputValue}
+				onInputChange={handleInputChange}
 				fileList={fileList}
 				onUploadChange={handleUpload}
 				onRemoveImage={handleRemoveImage}
@@ -403,7 +538,7 @@ export const Chat: React.FC<ChatProps> = ({
 				showEmoji={showEmoji}
 				onEmojiSelect={insertEmoji}
 				onSend={handleSend}
-				disabledSend={(!inputValue && fileList.length === 0) || sendLoading}
+				disabledSend={!inputValue || sendLoading}
 				loading={sendLoading}
 			/>
 

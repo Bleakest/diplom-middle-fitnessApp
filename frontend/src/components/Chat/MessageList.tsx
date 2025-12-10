@@ -5,13 +5,13 @@ import { Message } from './Message'
 type MessageListProps = {
 	messages: MessageType[]
 	onPreview: (url: string) => void
-	role: 'client' | 'trainer'
+	currentUserId?: string
 }
 
 export const MessageList: React.FC<MessageListProps> = ({
 	messages,
 	onPreview,
-	role,
+	currentUserId,
 }) => {
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -22,7 +22,12 @@ export const MessageList: React.FC<MessageListProps> = ({
 	return (
 		<>
 			{messages.map((msg) => (
-				<Message key={msg.id} msg={msg} onPreview={onPreview} role={role} />
+				<Message
+					key={msg.id}
+					msg={msg}
+					onPreview={onPreview}
+					currentUserId={currentUserId}
+				/>
 			))}
 			<div ref={messagesEndRef} />
 		</>

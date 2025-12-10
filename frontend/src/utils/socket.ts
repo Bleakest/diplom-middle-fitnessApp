@@ -6,6 +6,7 @@ export interface ServerToClientEvents {
 	new_message: (message: MessageType) => void
 	user_typing: (data: { chatId: string; userId: string }) => void
 	user_stopped_typing: (data: { chatId: string; userId: string }) => void
+	chat_updated: () => void
 }
 
 export interface ClientToServerEvents {
@@ -68,19 +69,6 @@ class SocketService {
 					reject(error)
 				}
 			})
-
-			this.socket.on('new_message', (message) => {
-				console.log('New message received:', message)
-				// Обработка нового сообщения через колбэки
-			})
-
-			this.socket.on('user_typing', (data) => {
-				console.log('User typing:', data)
-			})
-
-			this.socket.on('user_stopped_typing', (data) => {
-				console.log('User stopped typing:', data)
-			})
 		})
 	}
 
@@ -88,9 +76,6 @@ class SocketService {
 		if (this.reconnectAttempts < this.maxReconnectAttempts) {
 			this.reconnectAttempts++
 			setTimeout(() => {
-				console.log(
-					`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
-				)
 				this.socket?.connect()
 			}, this.reconnectDelay * this.reconnectAttempts)
 		}

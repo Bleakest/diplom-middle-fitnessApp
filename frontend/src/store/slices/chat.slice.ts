@@ -14,36 +14,13 @@ interface ChatState {
 	activeChatId: string | null
 }
 
-// Загружаем из localStorage при инициализации
-const loadFromStorage = (): ChatState => {
-	try {
-		const saved = localStorage.getItem('chat_state')
-		if (saved) {
-			const parsed = JSON.parse(saved)
-			return {
-				chats: parsed.chats || [],
-				messages: parsed.messages || {},
-				unreadCount: parsed.unreadCount || {},
-				typing: {},
-				activeChatId: null,
-			}
-		}
-	} catch (e) {
-		console.error('Failed to load chat state from localStorage', e)
-	}
-	return { chats: [], messages: {}, unreadCount: {}, typing: {}, activeChatId: null }
+const initialState: ChatState = {
+	chats: [],
+	messages: {},
+	unreadCount: {},
+	typing: {},
+	activeChatId: null,
 }
-
-// Сохраняем в localStorage
-const saveToStorage = (state: ChatState) => {
-	try {
-		localStorage.setItem('chat_state', JSON.stringify(state))
-	} catch (e) {
-		console.error('Failed to save chat state to localStorage', e)
-	}
-}
-
-const initialState: ChatState = loadFromStorage()
 
 export const chatSlice = createSlice({
 	name: 'chat',
@@ -56,7 +33,6 @@ export const chatSlice = createSlice({
 			action.payload.forEach((chat) => {
 				state.unreadCount[chat.id] = chat.unreadCount
 			})
-			saveToStorage(state)
 		},
 
 		// Установить активный чат
@@ -66,7 +42,6 @@ export const chatSlice = createSlice({
 			if (action.payload) {
 				state.unreadCount[action.payload] = 0
 			}
-			saveToStorage(state)
 		},
 
 		// Добавить сообщение
@@ -83,7 +58,6 @@ export const chatSlice = createSlice({
 			if (message.senderId !== 'current-user' && chatId !== state.activeChatId) {
 				state.unreadCount[chatId] = (state.unreadCount[chatId] || 0) + 1
 			}
-			saveToStorage(state)
 		},
 
 		// Получить сообщение через WebSocket
@@ -95,12 +69,15 @@ export const chatSlice = createSlice({
 			if (!state.messages[chatId]) {
 				state.messages[chatId] = []
 			}
-			state.messages[chatId].push(message)
-			// Увеличить непрочитанные только если чат не активен
-			if (chatId !== state.activeChatId) {
-				state.unreadCount[chatId] = (state.unreadCount[chatId] || 0) + 1
+			// Проверяем, нет ли уже сообщения с таким id (избегаем дубликатов)
+			const exists = state.messages[chatId].some((msg) => msg.id === message.id)
+			if (!exists) {
+				state.messages[chatId].push(message)
+				// Увеличить непрочитанные только если чат не активен
+				if (chatId !== state.activeChatId) {
+					state.unreadCount[chatId] = (state.unreadCount[chatId] || 0) + 1
+				}
 			}
-			saveToStorage(state)
 		},
 
 		// Обновить индикатор печати
@@ -121,21 +98,18 @@ export const chatSlice = createSlice({
 			state.messages[chatId] = messages
 			// При загрузке с сервера все сообщения считаются прочитанными
 			state.unreadCount[chatId] = 0
-			saveToStorage(state)
 		},
 
 		// Увеличить счётчик непрочитанных (устаревший, используем receiveMessage)
 		incrementUnread: (state, action: PayloadAction<string>) => {
 			const chatId = action.payload
 			state.unreadCount[chatId] = (state.unreadCount[chatId] || 0) + 1
-			saveToStorage(state)
 		},
 
 		// Сбросить непрочитанные (когда открыли чат)
 		markAsRead: (state, action: PayloadAction<string>) => {
 			const chatId = action.payload
 			state.unreadCount[chatId] = 0
-			saveToStorage(state)
 		},
 
 		// Отметить сообщения как прочитанные на сервере (опционально)
@@ -152,7 +126,6 @@ export const chatSlice = createSlice({
 					}
 				})
 			}
-			saveToStorage(state)
 		},
 
 		// Очистить чат
@@ -161,7 +134,6 @@ export const chatSlice = createSlice({
 			delete state.messages[chatId]
 			delete state.unreadCount[chatId]
 			delete state.typing[chatId]
-			saveToStorage(state)
 		},
 
 		// Обновить статус сообщения
@@ -171,13 +143,51 @@ export const chatSlice = createSlice({
 				chatId: string
 				messageId: string
 				status: 'sending' | 'sent' | 'error'
+				newChatId?: string // Для перемещения сообщения в другой чат
 			}>,
 		) => {
-			const { chatId, messageId, status } = action.payload
+			const { chatId, messageId, status, newChatId } = action.payload
 			if (state.messages[chatId]) {
-				const message = state.messages[chatId].find((msg) => msg.id === messageId)
-				if (message) {
+				const messageIndex = state.messages[chatId].findIndex(
+					(msg) => msg.id === messageId,
+				)
+				if (messageIndex !== -1) {
+					const message = state.messages[chatId][messageIndex]
 					message.status = status
+
+					// Если указан newChatId, перемещаем сообщение в другой чат
+					if (newChatId && newChatId !== chatId) {
+						// Удаляем из старого чата
+						state.messages[chatId].splice(messageIndex, 1)
+						// Обновляем chatId в сообщении
+						message.chatId = newChatId
+						// Добавляем в новый чат
+						if (!state.messages[newChatId]) {
+							state.messages[newChatId] = []
+						}
+						state.messages[newChatId].push(message)
+					}
+				}
+			}
+		},
+
+		// Заменить временное сообщение на реальное
+		replaceMessage: (
+			state,
+			action: PayloadAction<{
+				chatId: string
+				tempMessageId: string
+				realMessage: MessageType
+			}>,
+		) => {
+			const { chatId, tempMessageId, realMessage } = action.payload
+			if (state.messages[chatId]) {
+				const messageIndex = state.messages[chatId].findIndex(
+					(msg) => msg.id === tempMessageId,
+				)
+				if (messageIndex !== -1) {
+					// Заменяем временное сообщение на реальное
+					state.messages[chatId][messageIndex] = realMessage
 				}
 			}
 		},
@@ -205,6 +215,7 @@ export const {
 	markAsRead,
 	markMessagesAsRead,
 	updateMessageStatus,
+	replaceMessage,
 	clearChat,
 	resetAllChats,
 } = chatSlice.actions

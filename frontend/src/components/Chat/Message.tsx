@@ -10,12 +10,22 @@ import type { MessageType } from '../../types'
 type MessageProps = {
 	msg: MessageType
 	onPreview: (url: string) => void
-	role: 'client' | 'trainer'
+	currentUserId?: string
 }
 
-export const Message: React.FC<MessageProps> = ({ msg, onPreview, role }) => {
+export const Message: React.FC<MessageProps> = ({ msg, onPreview, currentUserId }) => {
+	const isOwnMessage = msg.sender.id === currentUserId
+
+	// Форматируем время
+	const formatTime = (dateString: string) => {
+		const date = new Date(dateString)
+		const hours = date.getHours().toString().padStart(2, '0')
+		const minutes = date.getMinutes().toString().padStart(2, '0')
+		return `${hours}:${minutes}`
+	}
+
 	const renderStatusIcon = () => {
-		if (msg.sender.id !== role) return null // Показывать статус только для своих сообщений
+		if (!isOwnMessage) return null // Показывать статус только для своих сообщений
 
 		switch (msg.status) {
 			case 'sending':
@@ -37,19 +47,20 @@ export const Message: React.FC<MessageProps> = ({ msg, onPreview, role }) => {
 		<div
 			className={clsx(
 				'message-bubble',
-				msg.sender.id === role ? 'message-bubble-own' : 'message-bubble-other',
+				isOwnMessage ? 'message-bubble-own' : 'message-bubble-other',
 				msg.status === 'error' && 'message-bubble-error',
 			)}
 		>
-			<div className='message-timestamp'>{msg.createdAt}</div>
-			<div className='message-content'>
-				<span className='message-text'>{msg?.text}</span>
-				{renderStatusIcon()}
-			</div>
+			{msg?.text && (
+				<div className='message-content'>
+					<span className='message-text'>{msg.text}</span>
+					{renderStatusIcon()}
+				</div>
+			)}
 			{msg?.imageUrl && (
 				<div>
 					<img
-						src={msg?.imageUrl}
+						src={msg.imageUrl}
 						alt='attachment'
 						className={clsx(
 							'message-image',
@@ -59,6 +70,7 @@ export const Message: React.FC<MessageProps> = ({ msg, onPreview, role }) => {
 					/>
 				</div>
 			)}
+			<div className='message-timestamp'>{formatTime(msg.createdAt)}</div>
 		</div>
 	)
 }
