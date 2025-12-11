@@ -6,7 +6,7 @@ import { MessageList } from './MessageList'
 import { InputPanel } from './InputPanel'
 import { ImagePreviewModal } from './ImagePreviewModal'
 import { TypingIndicator } from './TypingIndicator'
-import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { useAppDispatch, useAppSelector, selectChatMessages } from '../../store/hooks'
 import {
 	addMessage,
 	receiveMessage,
@@ -178,9 +178,7 @@ export const Chat: React.FC<ChatProps> = ({
 
 	// Получить состояние чата из Redux
 	const typing = useAppSelector((state) => (chatId ? state.chat.typing[chatId] : false))
-	const reduxMessages = useAppSelector((state) =>
-		chatId ? state.chat.messages[chatId] || [] : [],
-	)
+	const reduxMessages = useAppSelector((state) => selectChatMessages(state, chatId))
 
 	// Объединяем сообщения из API и Redux, удаляя дубликаты по id
 	const messages = useMemo(() => {
