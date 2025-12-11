@@ -18,11 +18,9 @@ export const Nutrition: React.FC = () => {
 	const [filter, setFilter] = useState<FilterType>('day')
 
 	const user = useAppSelector((state) => state.auth.user)
-	const clientId = user?.id || ''
 
 	const { data, isLoading, isError } = useGetClientNutritionPlanQuery(
 		{
-			clientId,
 			period: filter,
 		},
 		{
@@ -38,7 +36,10 @@ export const Nutrition: React.FC = () => {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
 				<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[1200px]'>
-					<Title level={2} className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'>
+					<Title
+						level={2}
+						className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'
+					>
 						🍽️ План питания
 					</Title>
 					<Alert
@@ -79,7 +80,10 @@ export const Nutrition: React.FC = () => {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
 				<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[1200px]'>
-					<Title level={2} className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'>
+					<Title
+						level={2}
+						className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'
+					>
 						🍽️ План питания
 					</Title>
 					<Alert
@@ -108,7 +112,10 @@ export const Nutrition: React.FC = () => {
 			<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[1200px]'>
 				<div className='flex items-center justify-between gap-4 flex-wrap mb-6'>
 					<div className='flex flex-col'>
-						<Title level={2} className='text-gray-800 font-semibold m-0 text-left pb-3 border-b-3 border-primary inline-block'>
+						<Title
+							level={2}
+							className='text-gray-800 font-semibold m-0 text-left pb-3 border-b-3 border-primary inline-block'
+						>
 							🍽️ План питания
 						</Title>
 						{plan.subcategory && (

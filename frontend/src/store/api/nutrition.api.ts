@@ -42,12 +42,12 @@ export const nutritionApi = createApi({
 		// План питания текущего клиента
 		getClientNutritionPlan: builder.query<
 			ClientNutritionPlanResponse,
-			{ clientId: string; period?: 'day' | 'week' | 'month'; date?: string }
+			{ clientId?: string; period?: 'day' | 'week' | 'month'; date?: string }
 		>({
 			query: ({ clientId, period = 'day', date }) => ({
 				url: '/nutrition/client/plan',
 				params: {
-					clientId,
+					...(clientId && { clientId }),
 					period,
 					...(date && { date }),
 				},
