@@ -17,7 +17,12 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { PROGRESS_METRICS } from '../../constants/progressMetrics'
 import { LoadingState, AvatarUploader, ProgressChart } from '../../components'
-import { useAppDispatch, useAppSelector, useAuth, useCancelTrainerModal } from '../../store/hooks'
+import {
+	useAppDispatch,
+	useAppSelector,
+	useAuth,
+	useCancelTrainerModal,
+} from '../../store/hooks'
 import {
 	useGetMeQuery,
 	useUpdateClientProfileMutation,
@@ -52,9 +57,6 @@ export const PersonalAccount = () => {
 		error,
 	} = useGetMeQuery(undefined, {
 		skip: !isAuthenticated,
-		pollingInterval: 5000, // Опрашиваем каждые 5 секунд для получения актуальных данных
-		refetchOnFocus: true, // Обновляем данные при возврате на вкладку
-		refetchOnReconnect: true, // Обновляем при восстановлении соединения
 	})
 
 	// Синхронизируем данные из RTK Query с Redux состоянием
@@ -273,7 +275,9 @@ export const PersonalAccount = () => {
 	if (error) {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}>
+				<div
+					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}
+				>
 					<ErrorState
 						title='Ошибка загрузки'
 						message='Не удалось загрузить данные профиля'
@@ -288,7 +292,9 @@ export const PersonalAccount = () => {
 	if (!user) {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}>
+				<div
+					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}
+				>
 					<ErrorState
 						title='Ошибка загрузки'
 						message='Пожалуйста, войдите в аккаунт'
@@ -315,9 +321,15 @@ export const PersonalAccount = () => {
 
 	return (
 		<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-			<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1000px]`}>
+			<div
+				className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1000px]`}
+			>
 				<div className='text-center mb-8'>
-					<Title level={2} className={`${titleClass} font-semibold mb-2 pb-3 border-b-3 inline-block`} style={{ borderColor: 'var(--primary)' }}>
+					<Title
+						level={2}
+						className={`${titleClass} font-semibold mb-2 pb-3 border-b-3 inline-block`}
+						style={{ borderColor: 'var(--primary)' }}
+					>
 						👤 Мой профиль
 					</Title>
 				</div>
@@ -380,7 +392,11 @@ export const PersonalAccount = () => {
 										<Input
 											disabled={!isEditing}
 											className={`rounded-lg ${disabledInputClass}`}
-											prefix={<MailOutlined className={isDark ? 'text-slate-500' : 'text-gray-400'} />}
+											prefix={
+												<MailOutlined
+													className={isDark ? 'text-slate-500' : 'text-gray-400'}
+												/>
+											}
 											placeholder='example@mail.com'
 											value={formData.email}
 											onChange={(e) => handleInputChange('email', e.target.value)}
@@ -394,7 +410,11 @@ export const PersonalAccount = () => {
 										<Input
 											disabled={!isEditing}
 											className={`rounded-lg ${disabledInputClass}`}
-											prefix={<PhoneOutlined className={isDark ? 'text-slate-500' : 'text-gray-400'} />}
+											prefix={
+												<PhoneOutlined
+													className={isDark ? 'text-slate-500' : 'text-gray-400'}
+												/>
+											}
 											placeholder='+7 999 123 45 67'
 											value={formData.phone}
 											onChange={(e) => handleInputChange('phone', e.target.value)}
@@ -529,7 +549,11 @@ export const PersonalAccount = () => {
 							<div className='flex items-start gap-4'>
 								{/* Аватар тренера */}
 								<div
-									className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border-2 ${isDark ? 'bg-slate-700 border-slate-600' : 'bg-gray-200 border-gray-300'}`}
+									className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden border-2 ${
+										isDark
+											? 'bg-slate-700 border-slate-600'
+											: 'bg-gray-200 border-gray-300'
+									}`}
 									style={{
 										backgroundImage: user.trainer.photo
 											? `url(${API_BASE_URL}${user.trainer.photo})`
@@ -539,7 +563,9 @@ export const PersonalAccount = () => {
 									}}
 								>
 									{!user.trainer.photo && (
-										<UserOutlined style={{ fontSize: '32px', color: isDark ? '#64748b' : '#9ca3af' }} />
+										<UserOutlined
+											style={{ fontSize: '32px', color: isDark ? '#64748b' : '#9ca3af' }}
+										/>
 									)}
 								</div>
 
@@ -563,7 +589,11 @@ export const PersonalAccount = () => {
 													href={`https://t.me/${user.trainer.telegram}`}
 													target='_blank'
 													rel='noopener noreferrer'
-													className={`flex items-center justify-center w-9 h-9 rounded-full border text-blue-500 transition-all ${isDark ? 'border-slate-600 hover:bg-blue-900/30 hover:border-blue-500' : 'border-gray-200 hover:bg-blue-50 hover:border-blue-300'}`}
+													className={`flex items-center justify-center w-9 h-9 rounded-full border text-blue-500 transition-all ${
+														isDark
+															? 'border-slate-600 hover:bg-blue-900/30 hover:border-blue-500'
+															: 'border-gray-200 hover:bg-blue-50 hover:border-blue-300'
+													}`}
 													title='Telegram'
 												>
 													<SendOutlined style={{ fontSize: '16px' }} />
@@ -574,7 +604,11 @@ export const PersonalAccount = () => {
 													href={`https://wa.me/${user.trainer.whatsapp}`}
 													target='_blank'
 													rel='noopener noreferrer'
-													className={`flex items-center justify-center w-9 h-9 rounded-full border text-green-500 transition-all ${isDark ? 'border-slate-600 hover:bg-green-900/30 hover:border-green-500' : 'border-gray-200 hover:bg-green-50 hover:border-green-300'}`}
+													className={`flex items-center justify-center w-9 h-9 rounded-full border text-green-500 transition-all ${
+														isDark
+															? 'border-slate-600 hover:bg-green-900/30 hover:border-green-500'
+															: 'border-gray-200 hover:bg-green-50 hover:border-green-300'
+													}`}
 													title='WhatsApp'
 												>
 													<WhatsAppOutlined style={{ fontSize: '16px' }} />
@@ -585,7 +619,11 @@ export const PersonalAccount = () => {
 													href={`https://instagram.com/${user.trainer.instagram}`}
 													target='_blank'
 													rel='noopener noreferrer'
-													className={`flex items-center justify-center w-9 h-9 rounded-full border text-pink-500 transition-all ${isDark ? 'border-slate-600 hover:bg-pink-900/30 hover:border-pink-500' : 'border-gray-200 hover:bg-pink-50 hover:border-pink-300'}`}
+													className={`flex items-center justify-center w-9 h-9 rounded-full border text-pink-500 transition-all ${
+														isDark
+															? 'border-slate-600 hover:bg-pink-900/30 hover:border-pink-500'
+															: 'border-gray-200 hover:bg-pink-50 hover:border-pink-300'
+													}`}
 													title='Instagram'
 												>
 													<InstagramOutlined style={{ fontSize: '16px' }} />

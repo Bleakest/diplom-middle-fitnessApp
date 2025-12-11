@@ -1,12 +1,21 @@
 import { useDispatch, useSelector } from 'react-redux'
 import type { TypedUseSelectorHook } from 'react-redux'
 import type { RootState, AppDispatch } from './index'
+import { createSelector } from '@reduxjs/toolkit'
 import { performCancelTrainer } from './slices/auth.slice'
 import type { ApiError } from './types/auth.types'
 import { Modal } from 'antd'
 
 export const useAppDispatch = () => useDispatch<AppDispatch>()
 export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+
+export const selectChatMessages = createSelector(
+	[
+		(state: RootState, chatId?: string) =>
+			chatId ? state.chat.messages[chatId] : undefined,
+	],
+	(messages) => messages || [],
+)
 
 export const useAuth = () => {
 	const { user, token, isAuthenticated, isLoading } = useAppSelector(

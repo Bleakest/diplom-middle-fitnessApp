@@ -40,9 +40,6 @@ export const Main: React.FC = () => {
 		refetch: refetchMe,
 	} = useGetMeQuery(undefined, {
 		skip: !token,
-		pollingInterval: 5000, // Опрашиваем каждые 5 секунд для получения актуальных данных
-		refetchOnFocus: true, // Обновляем данные при возврате на вкладку
-		refetchOnReconnect: true, // Обновляем при восстановлении соединения
 	})
 
 	// Синхронизируем данные из RTK Query с Redux состоянием
@@ -199,7 +196,9 @@ export const Main: React.FC = () => {
 	if (!isAuthenticated) {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] text-center animate-fade-in`}>
+				<div
+					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] text-center animate-fade-in`}
+				>
 					<Title level={1} className={`text-6xl! font-black! mb-6! ${titleClass}!`}>
 						Fitness App
 					</Title>
@@ -224,7 +223,9 @@ export const Main: React.FC = () => {
 	if (user?.role === 'TRAINER') {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] text-center animate-fade-in`}>
+				<div
+					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] text-center animate-fade-in`}
+				>
 					<Title level={1} className={`text-5xl! font-black! mb-6! ${titleClass}!`}>
 						👋 Добро пожаловать, {user.name}!
 					</Title>
@@ -248,9 +249,15 @@ export const Main: React.FC = () => {
 	if (hasTrainer && user.trainer) {
 		return (
 			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] animate-fade-in`}>
+				<div
+					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] animate-fade-in`}
+				>
 					<div className='text-center mb-8'>
-						<Title level={2} className={`${titleClass} font-semibold mb-4 pb-3 border-b-3 inline-block`} style={{ borderColor: 'var(--primary)' }}>
+						<Title
+							level={2}
+							className={`${titleClass} font-semibold mb-4 pb-3 border-b-3 inline-block`}
+							style={{ borderColor: 'var(--primary)' }}
+						>
 							🏋️ Ваш тренер
 						</Title>
 						<Paragraph className={`${textClass} mb-0!`}>
@@ -270,10 +277,7 @@ export const Main: React.FC = () => {
 						<>
 							<Divider />
 							<div className='text-center mb-8'>
-								<Title
-									level={3}
-									className='mb-2 flex items-center justify-center gap-2'
-								>
+								<Title level={3} className='mb-2 flex items-center justify-center gap-2'>
 									<TeamOutlined /> Другие тренеры
 								</Title>
 								<Paragraph className={`${textClass} mb-0!`}>
@@ -312,9 +316,15 @@ export const Main: React.FC = () => {
 	// Клиент без тренера - показываем список тренеров с пагинацией
 	return (
 		<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-			<div className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] animate-fade-in`}>
+			<div
+				className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[1200px] animate-fade-in`}
+			>
 				<div className='text-center mb-8'>
-					<Title level={2} className={`${titleClass} font-semibold mb-4 pb-3 border-b-3 inline-block`} style={{ borderColor: 'var(--primary)' }}>
+					<Title
+						level={2}
+						className={`${titleClass} font-semibold mb-4 pb-3 border-b-3 inline-block`}
+						style={{ borderColor: 'var(--primary)' }}
+					>
 						🎯 Выберите тренера
 					</Title>
 					<Paragraph className={`${textClass} mb-0!`}>
