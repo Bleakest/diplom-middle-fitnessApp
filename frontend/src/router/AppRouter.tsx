@@ -1,4 +1,6 @@
+import { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Spin } from 'antd'
 import { Login, Registration } from '../pages/auth'
 import {
 	AddProgress,
@@ -23,9 +25,16 @@ import { ChatWithClient } from '../pages/trainer/'
 import { ProtectedRoute } from './ProtectedRoute'
 import { GuestRoute } from './GuestRoute'
 
+const PageLoader = () => (
+	<div className='flex items-center justify-center min-h-[60vh]'>
+		<Spin size='large' tip='Загрузка страницы...' />
+	</div>
+)
+
 export const AppRouter = () => {
 	return (
-		<Routes>
+		<Suspense fallback={<PageLoader />}>
+			<Routes>
 			{/* Guest routes - только для неавторизованных пользователей */}
 			<Route
 				path='/login'
@@ -177,6 +186,7 @@ export const AppRouter = () => {
 			/>
 			{/* Fallback */}
 			<Route path='*' element={<Navigate to='/' replace />} />
-		</Routes>
+			</Routes>
+		</Suspense>
 	)
 }

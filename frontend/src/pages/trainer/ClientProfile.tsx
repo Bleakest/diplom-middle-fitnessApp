@@ -11,7 +11,7 @@ import {
 } from '../../components'
 import { useAuth } from '../../store/hooks'
 import { useGetClientProfileQuery } from '../../store/api/trainer.api'
-import { ErrorState, UnauthorizedState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { useGetProgressAnalyticsQuery } from '../../store/api/progress.api'
 import type { ProgressAnalyticsResponse } from '../../store/types/progress.types'
 import { transformAnalyticsToChartData } from '../../utils/progressChart'
@@ -46,7 +46,13 @@ export const ClientProfile = () => {
 	}
 
 	if (!isAuthenticated) {
-		return <UnauthorizedState />
+		return (
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={{ status: 401, data: { error: { message: 'Требуется авторизация', statusCode: 401 } } }}
+				/>
+			</div>
+		)
 	}
 
 	if (clientLoading) {
@@ -55,15 +61,12 @@ export const ClientProfile = () => {
 
 	if (clientError || !clientData) {
 		return (
-			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[500px]'>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить данные клиента'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={clientError}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить данные клиента'
+				/>
 			</div>
 		)
 	}

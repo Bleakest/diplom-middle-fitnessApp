@@ -6,6 +6,20 @@ import {
 } from '@reduxjs/toolkit/query/react'
 import { API_ENDPOINTS } from '../../config/api.config'
 
+/**
+ * Эндпоинты, для которых НЕ нужно делать reauth при 401 ошибке
+ * (это эндпоинты авторизации, где 401 — это нормальная ошибка неверных данных)
+ */
+const AUTH_ENDPOINTS = ['/login', '/signup', '/refresh']
+
+/**
+ * Проверяет, является ли запрос запросом авторизации
+ */
+function isAuthRequest(args: string | FetchArgs): boolean {
+	const url = typeof args === 'string' ? args : args.url
+	return AUTH_ENDPOINTS.some(endpoint => url?.includes(endpoint))
+}
+
 export const createBaseQueryWithReauth = (baseUrl: string) => {
 	const rawBaseQuery = fetchBaseQuery({
 		baseUrl,
@@ -26,7 +40,8 @@ export const createBaseQueryWithReauth = (baseUrl: string) => {
 	> = async (args, api, extraOptions) => {
 		let result = await rawBaseQuery(args, api, extraOptions)
 
-		if (result.error && result.error.status === 401) {
+		// Не делаем reauth для эндпоинтов авторизации — там 401 это нормальная ошибка
+		if (result.error && result.error.status === 401 && !isAuthRequest(args)) {
 			const refreshResult = await fetchBaseQuery({
 				baseUrl: API_ENDPOINTS.auth,
 				credentials: 'include',

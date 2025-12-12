@@ -9,7 +9,7 @@ import {
 } from '../../store/api/progress.api'
 import { formatDate } from '../../utils/progressFunctions.ts'
 import { AddCommentForm, CommentsList, MeasurementsCard } from '../../components/Admin'
-import { ErrorState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { LoadingState } from '../../components'
 import { API_BASE_URL } from '../../config/api.config'
 import { useThemeClasses } from '../../store/hooks.ts'
@@ -93,15 +93,11 @@ export const Report: FC = () => {
 
 	if (!reportIdToUse) {
 		return (
-			<div className='gradient-bg'>
-				<div style={{ maxWidth: '500px' }}>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='ID отчета не указан или указан неверно'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={{ status: 400, data: { error: { message: 'ID отчета не указан или указан неверно', statusCode: 400 } } }}
+					title='Ошибка загрузки'
+				/>
 			</div>
 		)
 	}
@@ -112,15 +108,12 @@ export const Report: FC = () => {
 
 	if (isError || error || !report) {
 		return (
-			<div className='gradient-bg'>
-				<div style={{ maxWidth: '500px' }}>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить отчет'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={error}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить отчет'
+				/>
 			</div>
 		)
 	}
