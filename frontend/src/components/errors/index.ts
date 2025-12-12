@@ -1,3 +1,2 @@
-export { ErrorState } from './ErrorState.tsx'
-export { UnauthorizedState } from './UnauthorizedState.tsx'
-export { BadRequestState } from './BadRequestState.tsx'
+export { ErrorBoundary } from './ErrorBoundary'
+export { ApiErrorState } from './ApiErrorState'

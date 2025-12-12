@@ -11,7 +11,7 @@ import {
 	computeDiffs,
 	PERIOD_OPTIONS,
 } from '../../utils/progressFunctions.ts'
-import { ErrorState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { LoadingState } from '../../components'
 import { useThemeClasses } from '../../store/hooks.ts'
 import { API_BASE_URL } from '../../config/api.config'
@@ -73,15 +73,11 @@ export const AllReportsAdmin: FC = () => {
 
 	if (!clientId) {
 		return (
-			<div className='gradient-bg'>
-				<div className='max-w-[500px]'>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='ID клиента не указан или указан неверно'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={{ status: 400, data: { error: { message: 'ID клиента не указан или указан неверно', statusCode: 400 } } }}
+					title='Ошибка загрузки'
+				/>
 			</div>
 		)
 	}
@@ -92,15 +88,12 @@ export const AllReportsAdmin: FC = () => {
 
 	if (isError || error) {
 		return (
-			<div className='gradient-bg'>
-				<div className='max-w-[500px]'>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить отчеты'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={error}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить отчеты'
+				/>
 			</div>
 		)
 	}

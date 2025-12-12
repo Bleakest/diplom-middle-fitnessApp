@@ -1,5 +1,5 @@
 export * from './Admin'
 export * from './Chat'
 export * from './Common'
-export * from './forms'
+export * from './Forms'
 export * from './Client'

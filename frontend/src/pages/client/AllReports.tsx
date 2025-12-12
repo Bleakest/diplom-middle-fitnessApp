@@ -10,7 +10,7 @@ import {
 	computeDiffs,
 	PERIOD_OPTIONS,
 } from '../../utils/progressFunctions.ts'
-import { ErrorState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { useAppSelector } from '../../store/hooks'
 import { LoadingOutlined } from '@ant-design/icons'
 import { API_BASE_URL } from '../../config/api.config'
@@ -99,15 +99,12 @@ export const AllReports: FC = () => {
 
 	if (isError || error) {
 		return (
-			<div className='gradient-bg'>
-				<div style={{ maxWidth: '500px' }}>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить отчеты'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={error}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить отчеты'
+				/>
 			</div>
 		)
 	}

@@ -34,7 +34,7 @@ import { useGetProgressChartDataQuery } from '../../store/api/progress.api'
 import { useGetClientNutritionPlanQuery } from '../../store/api/nutrition.api'
 import { performLogout, setUser, updateUser } from '../../store/slices/auth.slice'
 import type { ApiError } from '../../store/types/auth.types'
-import { ErrorState, UnauthorizedState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { API_BASE_URL } from '../../config/api.config'
 
 const { Title, Text } = Typography
@@ -268,41 +268,25 @@ export const PersonalAccount = () => {
 		return <LoadingState message='Загрузка профиля...' />
 	}
 
-	if (error && (error as ApiError)?.status === 401) {
-		return <UnauthorizedState />
-	}
-
 	if (error) {
 		return (
-			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div
-					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}
-				>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить данные профиля'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={error}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить данные профиля'
+				/>
 			</div>
 		)
 	}
 
 	if (!user) {
 		return (
-			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
-				<div
-					className={`${cardBgClass} rounded-2xl p-10 shadow-xl border ${borderClass} w-full max-w-[500px]`}
-				>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Пожалуйста, войдите в аккаунт'
-						onRetry={() => navigate('/login')}
-						showRetryButton={true}
-						buttonText='Войти'
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={{ status: 401, data: { error: { message: 'Пожалуйста, войдите в аккаунт', statusCode: 401 } } }}
+					title='Требуется авторизация'
+				/>
 			</div>
 		)
 	}

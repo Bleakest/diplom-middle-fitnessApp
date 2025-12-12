@@ -9,6 +9,7 @@ import { nutritionApi } from './api/nutrition.api'
 import { progressApi } from './api/progress.api'
 import { trainerApi } from './api/trainer.api'
 import { chatApi } from './api/chat.api'
+import { errorMiddleware } from './middleware/errorMiddleware'
 
 export const store = configureStore({
 	reducer: {
@@ -29,6 +30,7 @@ export const store = configureStore({
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware()
 			.concat(
+				errorMiddleware,
 				authApi.middleware,
 				userApi.middleware,
 				nutritionApi.middleware,
