@@ -1,5 +1,6 @@
 import React from 'react'
-import EmojiPicker, { type EmojiClickData } from 'emoji-picker-react'
+import EmojiPicker, { type EmojiClickData, Theme } from 'emoji-picker-react'
+import { useThemeClasses } from '../../store/hooks'
 
 type EmojiPickerProps = {
 	onSelect: (emoji: string) => void
@@ -10,29 +11,34 @@ export const EmojiPickerComponent: React.FC<EmojiPickerProps> = ({
 	onSelect,
 	onClose,
 }) => {
+	const classes = useThemeClasses()
+
 	const onEmojiClick = (emojiData: EmojiClickData) => {
 		onSelect(emojiData.emoji)
 	}
 
 	return (
-		<div style={{ position: 'relative' }}>
-			<EmojiPicker onEmojiClick={onEmojiClick} />
-			<button
-				type='button'
-				onClick={onClose}
-				style={{
-					position: 'absolute',
-					top: 5,
-					right: 5,
-					background: 'transparent',
-					border: 'none',
-					fontSize: 18,
-					cursor: 'pointer',
+		<div
+			className={`relative flex flex-col overflow-hidden rounded-lg ${classes.modalBg} ${classes.border} shadow-lg`}
+		>
+			<EmojiPicker
+				onEmojiClick={onEmojiClick}
+				theme={classes.isDark ? Theme.DARK : Theme.LIGHT}
+				className={`rounded-b-none!`}
+				previewConfig={{
+					showPreview: false,
 				}}
-				aria-label='Закрыть'
-			>
-				✕
-			</button>
+			/>
+			<div className={`border-t p-2 ${classes.border} flex justify-center`}>
+				<button
+					type='button'
+					onClick={onClose}
+					className={`w-full p-2 text-sm cursor-pointer transition-all duration-200 rounded-md border ${classes.modalBg} ${classes.textLight} ${classes.hoverBg} ${classes.border}! font-medium`}
+					aria-label='Закрыть'
+				>
+					Закрыть
+				</button>
+			</div>
 		</div>
 	)
 }

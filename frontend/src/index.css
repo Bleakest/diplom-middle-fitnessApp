@@ -1,32 +1,125 @@
 @import 'tailwindcss';
-
-:root {
-	--bg-dark: oklch(25% 0.02 260);
-	--bg: oklch(98% 0.005 260);
-	--bg-light: oklch(100% 0 0);
-	--text: oklch(25% 0.01 260);
-	--text-muted: oklch(45% 0.005 260);
-	--highlight: oklch(100% 0 0);
-	--border: oklch(85% 0.01 260);
-	--border-muted: oklch(90% 0.005 260);
-	--primary: oklch(60% 0.18 230);
-	--secondary: oklch(70% 0.15 200);
-	--accent: oklch(65% 0.15 270);
-	--info: oklch(65% 0.15 210);
-	--success: oklch(65% 0.18 145);
-	--warning: oklch(75% 0.18 85);
-	--danger: oklch(65% 0.2 25);
-	--gradient-start: oklch(70% 0.15 230);
-	--gradient-end: oklch(65% 0.15 270);
+@layer utilities {
+	/* Пользовательские утилиты можно добавить здесь, если необходимо */
 }
 
-/* === ОСНОВНЫЕ СТИЛИ === */
+/* ===========================
+   CSS ПЕРЕМЕННЫЕ ТЕМЫ
+   =========================== */
+
+/* 🌞 СВЕТЛАЯ ТЕМА */
+:root {
+	/* Фоны */
+	--bg-dark: oklch(92% 0.01 180);
+	--bg: oklch(97% 0.005 180);
+	--bg-light: oklch(100% 0 0);
+
+	/* Текст */
+	--text: oklch(20% 0.02 180);
+	--text-muted: oklch(45% 0.01 180);
+	--highlight: oklch(100% 0 0);
+
+	/* Границы */
+	--border: oklch(88% 0.01 180);
+	--border-muted: oklch(92% 0.005 180);
+
+	/* Основной акцент - изумрудно-бирюзовый */
+	--primary: oklch(55% 0.16 170);
+	--primary-hover: oklch(50% 0.18 170);
+	--primary-light: oklch(92% 0.06 170);
+
+	/* Вторичный акцент - тёплый коралловый */
+	--secondary: oklch(65% 0.18 25);
+	--secondary-hover: oklch(60% 0.2 25);
+
+	/* Акцент - глубокий синий */
+	--accent: oklch(55% 0.15 250);
+	--accent-hover: oklch(50% 0.17 250);
+
+	/* Семантические цвета */
+	--info: oklch(60% 0.14 240);
+	--success: oklch(60% 0.18 150);
+	--warning: oklch(75% 0.18 75);
+	--danger: oklch(60% 0.22 25);
+
+	/* Градиенты */
+	--gradient-start: oklch(55% 0.14 170);
+	--gradient-mid: oklch(50% 0.15 200);
+	--gradient-end: oklch(55% 0.14 250);
+
+	/* Тени */
+	--shadow-color: 180 10% 20%;
+	--shadow-sm: 0 1px 3px oklch(20% 0.02 180 / 0.08);
+	--shadow-md: 0 4px 12px oklch(20% 0.02 180 / 0.1);
+	--shadow-lg: 0 8px 25px oklch(20% 0.02 180 / 0.12);
+	--shadow-xl: 0 20px 50px oklch(20% 0.02 180 / 0.15);
+
+	/* Карточки */
+	--card-bg: oklch(100% 0 0);
+	--card-border: oklch(90% 0.01 180);
+	--card-shadow: var(--shadow-md);
+}
+
+/* 🌙 ТЁМНАЯ ТЕМА */
+:root.dark {
+	/* Фоны - глубокие синевато-серые */
+	--bg-dark: oklch(15% 0.02 250);
+	--bg: oklch(18% 0.02 250);
+	--bg-light: oklch(22% 0.025 250);
+
+	/* Текст */
+	--text: oklch(92% 0.01 180);
+	--text-muted: oklch(65% 0.01 200);
+	--highlight: oklch(100% 0 0);
+
+	/* Границы */
+	--border: oklch(30% 0.02 250);
+	--border-muted: oklch(25% 0.015 250);
+
+	/* Основной акцент - яркий изумрудный */
+	--primary: oklch(70% 0.18 170);
+	--primary-hover: oklch(75% 0.2 170);
+	--primary-light: oklch(30% 0.08 170);
+
+	/* Вторичный акцент - мягкий коралловый */
+	--secondary: oklch(70% 0.16 25);
+	--secondary-hover: oklch(75% 0.18 25);
+
+	/* Акцент - яркий синий */
+	--accent: oklch(70% 0.15 250);
+	--accent-hover: oklch(75% 0.17 250);
+
+	/* Семантические цвета (ярче для тёмной темы) */
+	--info: oklch(70% 0.14 240);
+	--success: oklch(70% 0.18 150);
+	--warning: oklch(80% 0.18 75);
+	--danger: oklch(70% 0.2 25);
+
+	/* Градиенты */
+	--gradient-start: oklch(35% 0.12 170);
+	--gradient-mid: oklch(30% 0.12 200);
+	--gradient-end: oklch(35% 0.12 250);
+
+	/* Тени - более выраженные на тёмном */
+	--shadow-sm: 0 1px 3px oklch(0% 0 0 / 0.3);
+	--shadow-md: 0 4px 12px oklch(0% 0 0 / 0.4);
+	--shadow-lg: 0 8px 25px oklch(0% 0 0 / 0.5);
+	--shadow-xl: 0 20px 50px oklch(0% 0 0 / 0.6);
+
+	/* Карточки */
+	--card-bg: oklch(22% 0.025 250);
+	--card-border: oklch(28% 0.02 250);
+	--card-shadow: var(--shadow-md);
+}
+
+/* ===========================
+   БАЗОВЫЕ СТИЛИ
+   =========================== */
 body {
 	margin: 0;
 	background-color: var(--bg);
 	color: var(--text);
-	height: auto;
-	overflow: auto;
+	transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -38,410 +131,71 @@ a:hover {
 	color: inherit;
 }
 
-/* === КОМПОНЕНТЫ СТРАНИЦ === */
+/* ===========================
+   TAILWIND УТИЛИТЫ (заменены на обычные классы для совместимости)
+   =========================== */
+@keyframes gradient-shift {
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
 .gradient-bg {
-	background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+	background: linear-gradient(
+		135deg,
+		var(--gradient-start),
+		var(--gradient-mid),
+		var(--gradient-end)
+	);
 	background-attachment: fixed;
 	min-height: 100vh;
-	/* Фикс для прокручиваемого контента - фон покрывает весь контент */
-	background-size: cover;
+	background-size: 200% 200%;
+	animation: gradient-shift 15s ease infinite;
 }
 
-.page-container {
-	min-height: calc(100vh - 4rem);
-	padding: 40px 20px;
-	display: flex;
-	justify-content: center;
-	align-items: flex-start;
+.bg-light {
+	background-color: var(--bg-light);
 }
 
-.page-card {
-	background: var(--bg-light);
-	border-radius: 20px;
-	padding: 40px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-	border: 1px solid var(--border);
-	width: 100%;
-	max-width: 1200px;
+.bg-main {
+	background-color: var(--bg);
 }
 
-.card-hover {
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+.bg-card {
+	background-color: var(--card-bg);
 }
 
-.card-hover:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.section-header {
-	text-align: center;
-	margin-bottom: 32px;
-}
-
-.section-title {
-	color: var(--text);
-	font-weight: 600;
-	margin-bottom: 16px;
-	padding-bottom: 12px;
-	border-bottom: 3px solid var(--primary);
-	display: inline-block;
-}
-
-/* === ФОРМЫ И ИНПУТЫ === */
-.ant-form {
-	background: transparent !important;
-	border: none !important;
-	box-shadow: none !important;
-	padding: 0 !important;
-}
-
-.auth-container {
-	min-height: calc(100vh - 4rem);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 20px;
-}
-
-.auth-card {
-	background: var(--bg-light);
-	border-radius: 20px;
-	padding: 40px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-	border: 1px solid var(--border);
-	max-width: 480px;
-	width: 100%;
-}
-
-.form-section {
-	margin-bottom: 32px;
-}
-
-.photo-upload-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-	margin-bottom: 24px;
-}
-
-.upload-area {
-	border: 2px dashed var(--border);
-	border-radius: 12px;
-	padding: 20px;
-	text-align: center;
-	cursor: pointer;
-	transition: all 0.3s ease;
-	background: var(--bg);
-}
-
-.upload-area:hover {
-	border-color: var(--primary);
-	background: var(--bg-light);
-}
-
-.upload-preview {
-	width: 100%;
-	height: 120px;
-	object-fit: cover;
-	border-radius: 8px;
-	margin-top: 8px;
-}
-
-/* === ANT DESIGN КОМПОНЕНТЫ === */
-.ant-layout-header,
-.ant-card-head,
-.ant-modal-header,
-.ant-drawer-header {
-	background-color: var(--bg-light) !important;
-}
-
-.ant-form-item-label > label {
-	color: var(--text) !important;
-}
-
-.ant-btn {
-	border-radius: 8px !important;
-	background: var(--bg-light);
-	color: var(--text);
-	border-color: var(--border);
-}
-
-.ant-btn:hover,
-.ant-btn:focus {
-	color: var(--info);
-	border-color: var(--info);
-}
-
-.ant-btn-primary {
-	background: var(--primary) !important;
-	color: var(--highlight) !important;
-	border-color: var(--primary) !important;
-}
-
-.ant-btn-primary:hover,
-.ant-btn-primary:focus {
-	background: var(--info) !important;
-	color: var(--highlight) !important;
-	border-color: var(--info) !important;
-}
-
-.ant-input,
-.ant-input-number .ant-input-number-input,
-.ant-picker,
-.ant-select .ant-select-selector {
-	border-radius: 8px !important;
-	background: var(--bg-light) !important;
-	color: var(--text) !important;
-}
-
-.ant-form-item-explain-error {
-	color: var(--danger) !important;
-}
-
-.ant-form-item-has-error .ant-input,
-.ant-form-item-has-error .ant-input-number,
-.ant-form-item-has-error .ant-picker,
-.ant-form-item-has-error .ant-select .ant-select-selector {
-	border-color: var(--danger) !important;
-}
-
-/* === SELECT И DROPDOWN === */
-.ant-select-dropdown {
-	background: var(--bg-light) !important;
-	border: 1px solid var(--border) !important;
-	border-radius: 12px !important;
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-}
-
-.ant-select-item {
-	background: var(--bg-light) !important;
-	color: var(--text) !important;
-	border-radius: 6px !important;
-	margin: 2px 8px !important;
-	transition: all 0.2s ease !important;
-}
-
-.ant-select-item:hover,
-.ant-select-item-option-selected,
-.ant-select-item-option-active {
-	background: var(--primary) !important;
-	color: var(--highlight) !important;
-}
-
-/* === DATEPICKER === */
-.ant-picker-dropdown {
-	background: var(--bg-light) !important;
-	border: 1px solid var(--border) !important;
-	border-radius: 12px !important;
-}
-
-.ant-picker-cell-selected .ant-picker-cell-inner {
-	background: var(--primary) !important;
-	color: var(--highlight) !important;
-}
-
-/* === УТИЛИТЫ === */
 .text-muted {
 	color: var(--text-muted);
-}
-
-.background-light {
-	background-color: var(--bg-light);
 }
 
 .border-muted {
 	border-color: var(--border-muted);
 }
 
-.report-card {
-	background: var(--bg);
-	border: 1px solid var(--border);
-	border-radius: 12px;
-	transition: all 0.3s ease;
-	cursor: pointer;
-}
-
-.report-card:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-	border-color: var(--primary);
-}
-
-.filter-tabs {
-	display: flex;
-	gap: 16px;
-	margin-bottom: 32px;
-	justify-content: center;
-}
-
-.filter-tab {
-	padding: 12px 24px;
-	border: 2px solid transparent;
-	border-radius: 8px;
-	background: var(--bg);
-	color: var(--text);
-	cursor: pointer;
-	transition: all 0.3s ease;
-	font-weight: 500;
-}
-
-.filter-tab.active {
-	background: var(--primary);
-	color: var(--highlight);
-	border-color: var(--primary);
-}
-
-.filter-tab:hover:not(.active) {
-	border-color: var(--primary);
+.text-primary {
 	color: var(--primary);
 }
 
-.admin-layout {
-	min-height: 100vh;
+.text-danger {
+	color: var(--danger);
 }
 
-.admin-sidebar {
-	background: var(--bg-light) !important;
-	border-right: 1px solid var(--border) !important;
-	box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+.border-primary {
+	border-color: var(--primary);
 }
 
-.admin-content {
-	background: transparent !important;
-	padding: 0 !important;
+.shadow-card {
+	box-shadow: var(--card-shadow);
 }
 
-/* Стили для Nutrition страницы */
-.nutrition-category-wrapper {
-	min-height: 120px; /* Минимальная высота для закрытой карточки */
-}
-
-.nutrition-category-card {
-	height: auto;
-	min-height: 120px;
-	transition: all 0.3s ease;
-	margin-bottom: 0;
-}
-
-.nutrition-category-card.expanded {
-	min-height: 300px; /* Минимальная высота для открытой карточки */
-}
-
-/* Убираем стандартные отступы Ant Design Card */
-.nutrition-category-card .ant-card-body {
-	padding: 16px !important;
-}
-
-/* Фиксируем высоту заголовка карточки */
-.nutrition-category-card .ant-card-meta {
-	min-height: 60px;
-}
-
-/* Стили для содержимого когда карточка открыта */
-.nutrition-category-card.expanded .ant-card-meta-description {
-	max-height: none;
-	overflow: visible;
-}
-
-/* Убираем стандартный ховер Ant Design */
-.nutrition-category-card.ant-card-hoverable:hover {
-	transform: none;
-	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.nutrition-category-card:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-/* Исправляем grid layout */
-.grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3.gap-6 {
-	grid-auto-rows: minmax(120px, auto);
-	align-items: start;
-}
-
-/* Специальные стили для страницы Admin */
-.admin-page-card {
-	background: var(--bg-light);
-	padding: 40px;
-	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-	width: 100%;
-	box-sizing: border-box;
-}
-
-/* Убираем ограничение максимальной ширины только для админской страницы */
-.admin-layout .admin-page-card {
-	max-width: none;
-	min-height: 100%;
-}
-
-/* Фиксируем высоту layout и делаем прокрутку в content */
-.admin-layout {
-	height: 100vh;
-	overflow: hidden;
-}
-
-/* Sidebar занимает всю высоту */
-.admin-layout .ant-layout-sider {
-	height: 100vh;
-	overflow-y: auto;
-}
-
-/* Content прокручивается и имеет фон */
-.admin-content {
-	height: 100vh;
-	overflow-y: auto;
-	background: transparent !important;
-}
-
-/* Фикс для вкладки "Все клиенты" - фон не должен обрываться */
-.admin-page-card .ant-tabs-content {
-	min-height: auto;
-}
-
-.admin-page-card .ant-tabs-tabpane {
-	padding-bottom: 40px;
-}
-.custom-segmented {
-	background: transparent;
-}
-.custom-segmented .ant-segmented-item {
-	background-color: lightgray; /* цвет фона всех табов */
-	color: black; /* цвет текста */
-	border-radius: 8px; /* например, радиус */
-}
-/* Отступы между табами кроме последнего элемента */
-.custom-segmented .ant-segmented-item:not(:last-child) {
-	margin-right: 8px; /* отступ между табами */
-}
-.custom-segmented .ant-segmented-item-selected {
-	background-color: #1890ff; /* цвет активного таба */
-	color: white;
-}
-
-/* === КАРТОЧКИ ТРЕНЕРОВ === */
-.trainer-list-card {
-	background: var(--bg-light);
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.trainer-list-card:hover {
-	transform: translateY(-8px);
-	box-shadow: 0 20px 40px rgba(102, 126, 234, 0.25);
-}
-
-.my-trainer-card {
-	transition: all 0.3s ease;
-}
-
-.my-trainer-card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 25px 70px rgba(102, 126, 234, 0.5);
-}
-
-/* Социальные ссылки */
+/* ===========================
+   СОЦИАЛЬНЫЕ ССЫЛКИ
+   =========================== */
 .social-link {
 	display: inline-flex;
 	align-items: center;
@@ -449,286 +203,342 @@ a:hover {
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.15);
+	background: var(--primary);
 	color: #fff;
-	transition: all 0.2s ease;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .social-link:hover {
-	transform: scale(1.1);
+	transform: scale(1.15) translateY(-2px);
 	color: #fff;
+	box-shadow: 0 4px 15px var(--primary);
 }
 
 .social-link.telegram:hover {
 	background: #0088cc;
+	box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
 }
 
 .social-link.whatsapp:hover {
 	background: #25d366;
+	box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
 }
 
 .social-link.instagram:hover {
 	background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+	box-shadow: 0 4px 15px rgba(225, 48, 108, 0.4);
 }
 
-/* Карточка тренера в списке - социальные ссылки */
-.trainer-list-card .social-link {
-	background: var(--primary);
-	color: #fff;
-	width: 28px;
-	height: 28px;
+/* ===========================
+   ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ
+   =========================== */
+.theme-toggle {
+	position: relative;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: var(--bg-light);
+	border: 2px solid var(--border);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	overflow: hidden;
 }
 
-.trainer-list-card .social-link:hover {
-	color: #fff;
+.theme-toggle:hover {
+	border-color: var(--primary);
+	transform: scale(1.05);
+	box-shadow: 0 4px 15px var(--primary);
 }
 
-/* === ANT DESIGN NOTIFICATION (v5+) === */
-.ant-notification-notice,
-.ant-notification-notice-wrapper .ant-notification-notice {
-	background: #ffffff !important;
-	background-color: #ffffff !important;
-	border: 1px solid #e5e7eb !important;
-	border-radius: 12px !important;
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+.theme-toggle:active {
+	transform: scale(0.95);
 }
 
-.ant-notification-notice-message,
-.ant-notification-notice-wrapper .ant-notification-notice-message {
-	color: #1f2937 !important;
-	font-weight: 600 !important;
+.theme-toggle-icon {
+	position: absolute;
+	font-size: 20px;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.ant-notification-notice-description,
-.ant-notification-notice-wrapper .ant-notification-notice-description {
-	color: #6b7280 !important;
+/* Солнце - видно в светлой теме */
+.theme-toggle .sun-icon {
+	color: #f59e0b;
+	opacity: 1;
+	transform: rotate(0deg) scale(1);
 }
 
-.ant-notification-notice-icon,
-.ant-notification-notice-wrapper .ant-notification-notice-icon {
-	color: #f59e0b !important;
+.theme-toggle .moon-icon {
+	color: #6366f1;
+	opacity: 0;
+	transform: rotate(-90deg) scale(0.5);
 }
 
-.ant-notification-notice-close,
-.ant-notification-notice-wrapper .ant-notification-notice-close {
-	color: #6b7280 !important;
+/* Луна - видна в тёмной теме */
+:root.dark .theme-toggle .sun-icon {
+	opacity: 0;
+	transform: rotate(90deg) scale(0.5);
 }
 
-.ant-notification-notice-close:hover,
-.ant-notification-notice-wrapper .ant-notification-notice-close:hover {
-	color: #1f2937 !important;
+:root.dark .theme-toggle .moon-icon {
+	opacity: 1;
+	transform: rotate(0deg) scale(1);
 }
 
-/* === ANT DESIGN MESSAGE (v5+) === */
-.ant-message .ant-message-notice-content,
-.ant-message-notice-content {
-	background: #ffffff !important;
-	background-color: #ffffff !important;
-	color: #1f2937 !important;
-	border: 1px solid #e5e7eb !important;
-	border-radius: 8px !important;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
+/* ===========================
+   ANT DESIGN МИНИМАЛЬНЫЕ ФИКСЫ
+   =========================== */
 
-.ant-message .ant-message-notice-content .anticon,
-.ant-message-notice-content .anticon {
-	color: inherit !important;
-}
-
-/* Фикс для message wrapper */
-.ant-message-notice-wrapper {
-	background: transparent !important;
-}
-
-/* Цвета для разных типов сообщений */
-.ant-message-success .ant-message-notice-content {
-	border-left: 4px solid #10b981 !important;
-}
-
-.ant-message-error .ant-message-notice-content {
-	border-left: 4px solid #ef4444 !important;
-}
-
-.ant-message-warning .ant-message-notice-content {
-	border-left: 4px solid #f59e0b !important;
-}
-
-.ant-message-info .ant-message-notice-content {
-	border-left: 4px solid #3b82f6 !important;
-}
-
-/* === FIX: Alert компонент для Ant Design v5 === */
-.ant-alert {
-	background: #ffffff !important;
-	background-color: #ffffff !important;
-	border-radius: 8px !important;
-}
-
-.ant-alert-error {
-	background: #fff2f0 !important;
-	background-color: #fff2f0 !important;
-	border: 1px solid #ffccc7 !important;
-}
-
-.ant-alert-error .ant-alert-message {
-	color: #a8071a !important;
-}
-
-.ant-alert-error .ant-alert-description {
-	color: #cf1322 !important;
-}
-
-.ant-alert-error .ant-alert-icon {
-	color: #ff4d4f !important;
-}
-
-.ant-alert-warning {
-	background: #fffbe6 !important;
-	background-color: #fffbe6 !important;
-	border: 1px solid #ffe58f !important;
-}
-
-.ant-alert-warning .ant-alert-message {
-	color: #ad6800 !important;
-}
-
-.ant-alert-success {
-	background: #f6ffed !important;
-	background-color: #f6ffed !important;
-	border: 1px solid #b7eb8f !important;
-}
-
-.ant-alert-success .ant-alert-message {
-	color: #389e0d !important;
-}
-
-.ant-alert-info {
-	background: #e6f4ff !important;
-	background-color: #e6f4ff !important;
-	border: 1px solid #91caff !important;
-}
-
-.ant-alert-info .ant-alert-message {
-	color: #0958d9 !important;
-}
-
-.ant-alert-close-icon {
-	color: rgba(0, 0, 0, 0.45) !important;
-}
-
-.ant-alert-close-icon:hover {
-	color: rgba(0, 0, 0, 0.88) !important;
-}
-
-/* === FIX: Notification wrapper для Ant Design v5 === */
-.ant-notification {
-	z-index: 9999 !important;
-}
-
-.ant-notification-notice-wrapper {
-	background: transparent !important;
-}
-
-/* Принудительные стили для notification в Ant Design v5 */
-div[class*='ant-notification'] .ant-notification-notice {
-	background: #ffffff !important;
-	background-color: #ffffff !important;
-	border: 1px solid #e5e7eb !important;
-	border-radius: 12px !important;
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-}
-
-div[class*='ant-notification'] .ant-notification-notice-message {
-	color: #1f2937 !important;
-	font-weight: 600 !important;
-}
-
-div[class*='ant-notification'] .ant-notification-notice-description {
-	color: #4b5563 !important;
-}
-
-div[class*='ant-notification'] .ant-notification-notice-icon {
-	color: #f59e0b !important;
-}
-
-div[class*='ant-notification'] .ant-notification-notice-close {
-	color: #6b7280 !important;
-}
-
-div[class*='ant-notification'] .ant-notification-notice-close:hover {
-	color: #1f2937 !important;
-	background: #f3f4f6 !important;
-}
-
-.ant-collapse-content-box > :last-child {
-	margin-bottom: 0;
-}
-
-.nutrition-days-container > * {
-	margin-bottom: 1.5rem; /* 24px */
-}
-
-.nutrition-days-container > *:last-child {
-	margin-bottom: 0;
-}
-
-/* === HEADER DROPDOWN MENU === */
+/* Dropdown меню */
 .ant-dropdown-menu {
-	background: var(--bg-light) !important;
-	border: 1px solid var(--border) !important;
 	border-radius: 12px !important;
-	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-	padding: 4px !important;
+	box-shadow: var(--shadow-lg) !important;
+	padding: 6px !important;
+	background: var(--card-bg) !important;
+	border: 1px solid var(--border) !important;
 }
 
 .ant-dropdown-menu-item {
 	border-radius: 8px !important;
 	margin: 2px 0 !important;
-	padding: 8px 12px !important;
 	transition: all 0.2s ease !important;
 }
 
-.ant-dropdown-menu-item:hover {
-	background: var(--primary) !important;
+/* Select dropdown */
+.ant-select-dropdown {
+	border-radius: 12px !important;
+	box-shadow: var(--shadow-lg) !important;
+	background: var(--card-bg) !important;
+	border: 1px solid var(--border) !important;
 }
 
-.ant-dropdown-menu-item:hover .ant-dropdown-menu-title-content,
-.ant-dropdown-menu-item:hover .anticon {
-	color: #ffffff !important;
+.ant-select-item {
+	border-radius: 6px !important;
+	margin: 2px 8px !important;
 }
 
-.ant-dropdown-menu-item-danger:hover {
-	background: var(--danger) !important;
+/* DatePicker dropdown */
+.ant-picker-dropdown {
+	border-radius: 12px !important;
 }
 
-.ant-dropdown-menu-item-danger:hover .ant-dropdown-menu-title-content,
-.ant-dropdown-menu-item-danger:hover .anticon {
-	color: #ffffff !important;
+/* Notification и Message */
+.ant-notification {
+	z-index: 9999 !important;
 }
 
-/* Активные ссылки в навигации */
-.nav-link-active {
-	color: var(--primary) !important;
-	font-weight: 600 !important;
+.ant-message {
+	z-index: 9999 !important;
 }
 
-/* Action buttons in cards */
-.action-buttons {
+/* Collapse */
+.ant-collapse-content-box > :last-child {
+	margin-bottom: 0;
+}
+
+/* Плавные переходы для всех компонентов Ant Design */
+.ant-btn,
+.ant-card,
+.ant-input,
+.ant-select,
+.ant-modal-content,
+.ant-drawer-content,
+.ant-table,
+.ant-menu {
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ===========================
+   ГЛОБАЛЬНЫЕ АНИМАЦИИ
+   =========================== */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.animate-fade-in {
+	animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+	animation: scale-in 0.2s ease-out forwards;
+}
+
+/* === АНИМАЦИЯ НАБОРА ТЕКСТА === */
+@keyframes typing {
+	0%,
+	60%,
+	100% {
+		transform: translateY(0);
+		opacity: 0.4;
+	}
+	30% {
+		transform: translateY(-10px);
+		opacity: 1;
+	}
+}
+
+/* === КОМПОНЕНТЫ ЧАТА === */
+
+/* Состояния загрузки и ошибок */
+.chat-loading-container {
 	display: flex;
-	justify-content: space-between;
+	justify-content: center;
+	align-items: center;
+	padding: 32px 0;
+}
+
+.chat-error-container {
+	padding: 16px;
+}
+
+.chat-messages-container {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 12px 16px;
+	margin-top: 0.5rem;
+	margin-bottom: 0.5rem;
+	gap: 18px;
+	max-height: 500px;
+	overflow-y: auto;
+}
+
+.chat-empty-state {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 24px;
+}
+
+.chat-empty-message {
+	text-align: center;
+	padding: 24px;
+	background: rgba(255, 255, 255, 0.9);
+	border-radius: 12px;
+	border: 1px solid #dbe4ee;
+}
+
+.chat-empty-subtitle {
+	display: block;
+	margin-top: 8px;
+	color: #8c8c8c;
+}
+
+/* Компонент сообщения */
+.message-bubble {
+	min-width: 120px;
+	max-width: 65%;
+	padding: 12px 16px;
+	border-radius: 15px;
+	box-shadow: 0 2px 8px 0 rgba(90, 120, 150, 0.04);
+	transition: background 0.2s;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+.message-bubble-own {
+	margin-left: auto;
+	margin-right: 0;
+	background: #1890ff;
+	border: 1.5px solid #1890ff;
+	color: #ffffff;
+}
+
+.message-bubble-own .message-timestamp {
+	color: rgba(255, 255, 255, 0.8);
+}
+
+.message-bubble-other {
+	margin-right: auto;
+	margin-left: 0;
+	background: #ffffff;
+	border: 1.5px solid #dbe4ee;
+	color: #000000;
+}
+
+.message-bubble-error {
+	background: #fff2f0;
+	border-color: #ffccc7;
+	color: #000000;
+}
+
+.message-timestamp {
+	font-size: 11px;
+	color: #8d8d8d;
+	margin-top: 4px;
+	text-align: right;
+}
+
+.message-content {
+	display: flex;
+	align-items: center;
 	gap: 8px;
 }
 
-.action-buttons button {
-	width: 100%;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+.message-text {
+	flex: 1;
 }
 
-@media (max-width: 720px) {
-	.action-buttons {
-		flex-direction: column;
-		align-items: stretch;
-	}
+.message-status-icon {
+	margin-left: 8px;
+	font-size: 12px;
+}
+
+.message-status-sending {
+	color: #faad14;
+}
+
+.message-status-sent {
+	color: #52c41a;
+}
+
+.message-status-error {
+	color: #ff4d4f;
+}
+
+.message-image {
+	margin-top: 10px;
+	width: 120px;
+	border-radius: 8px;
+	border: 1px solid #dde4ee;
+	cursor: pointer;
+	transition: opacity 0.2s;
+}
+
+.message-image-sending {
+	opacity: 0.7;
+}
+
+.image-preview-modal-img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+.emoji-picker-container {
+	position: absolute;
+	top: -490px;
+	left: 80px;
+	z-index: 1000;
 }

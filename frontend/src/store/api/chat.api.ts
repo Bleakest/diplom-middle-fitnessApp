@@ -1,81 +1,98 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQueryWithReauth } from './baseQuery'
 import { API_ENDPOINTS } from '../../config/api.config'
 
 export interface Message {
 	id: string
+	chatId: string
 	senderId: string
-	receiverId: string
-	message: string
-	timestamp: string
-	read: boolean
-	senderName: string
-	senderAvatar?: string
+	text: string
+	imageUrl?: string
+	createdAt: string
+	isRead: boolean
+	sender: {
+		id: string
+		name: string
+		photo?: string
+	}
 }
 
 export interface Chat {
 	id: string
-	participant1: string
-	participant2: string
+	trainerId: string
+	clientId: string
+	createdAt: string
+	updatedAt: string
+	client?: {
+		id: string
+		name: string
+		photo?: string
+	}
+	trainer?: {
+		id: string
+		name: string
+		photo?: string
+	}
+	lastMessage?: Message | null
+	unreadCount: number
+	isFavorite?: boolean
+}
+
+export interface ChatListResponse {
+	chats: Chat[]
+}
+
+export interface SendMessageResponse {
+	message: Message
+}
+
+export interface GetMessagesResponse {
 	messages: Message[]
+	total: number
+	page: number
+	limit: number
 }
 
 export const chatApi = createApi({
 	reducerPath: 'chatApi',
-	baseQuery: fetchBaseQuery({
-		baseUrl: API_ENDPOINTS.chat,
-		credentials: 'include',
-		prepareHeaders: (headers) => {
-			const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-			if (token) {
-				headers.set('authorization', `Bearer ${token}`)
-			}
-			return headers
-		},
-	}),
-	tagTypes: ['Messages'],
+	baseQuery: createBaseQueryWithReauth(API_ENDPOINTS.chat),
+	tagTypes: ['Messages', 'Chats'],
 	endpoints: (builder) => ({
-		getMessages: builder.query<Message[], { userId1: string; userId2: string }>({
-			query: ({ userId1, userId2 }) => `/${userId1}/${userId2}`,
+		getChats: builder.query<ChatListResponse, void>({
+			query: () => '/',
+			providesTags: ['Chats'],
+		}),
+
+		getMessages: builder.query<
+			GetMessagesResponse,
+			{ chatId: string; page?: number; limit?: number }
+		>({
+			query: ({ chatId, ...params }) => ({
+				url: `/${chatId}/messages`,
+				params,
+			}),
 			providesTags: ['Messages'],
 		}),
 
 		sendMessage: builder.mutation<
-			Message,
-			{
-				senderId: string
-				receiverId: string
-				message: string
-				senderName: string
-				senderAvatar?: string
-			}
+			SendMessageResponse,
+			{ chatId?: string; text?: string; image?: File }
 		>({
-			query: (messageData) => ({
-				url: '/send',
-				method: 'POST',
-				body: messageData,
-			}),
-			invalidatesTags: ['Messages'],
-		}),
+			query: ({ chatId, ...body }) => {
+				const formData = new FormData()
+				if (body.text) formData.append('text', body.text)
+				if (body.image) formData.append('image', body.image)
+				if (chatId) formData.append('chatId', chatId)
 
-		markMessagesAsRead: builder.mutation<void, { userId: string; contactId: string }>({
-			query: ({ userId, contactId }) => ({
-				url: '/mark-read',
-				method: 'POST',
-				body: { userId, contactId },
-			}),
-			invalidatesTags: ['Messages'],
-		}),
-
-		getTrainerChats: builder.query<Chat[], string>({
-			query: (trainerId) => `/trainer/${trainerId}/chats`,
-			providesTags: ['Messages'],
+				return {
+					url: '/messages',
+					method: 'POST',
+					body: formData,
+				}
+			},
+			invalidatesTags: ['Messages', 'Chats'],
 		}),
 	}),
 })
 
-export const {
-	useGetMessagesQuery,
-	useSendMessageMutation,
-	useMarkMessagesAsReadMutation,
-	useGetTrainerChatsQuery,
-} = chatApi
+export const { useGetChatsQuery, useGetMessagesQuery, useSendMessageMutation } = chatApi

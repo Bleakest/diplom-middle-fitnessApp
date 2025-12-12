@@ -1,4 +1,6 @@
+import { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Spin } from 'antd'
 import { Login, Registration } from '../pages/auth'
 import {
 	AddProgress,
@@ -13,6 +15,7 @@ import {
 import {
 	AddNutritionTrainer,
 	Admin,
+	AllReportsAdmin,
 	ClientProfile,
 	CreateNutritionTrainer,
 	NutritionPlanTrainer,
@@ -22,9 +25,16 @@ import { ChatWithClient } from '../pages/trainer/'
 import { ProtectedRoute } from './ProtectedRoute'
 import { GuestRoute } from './GuestRoute'
 
+const PageLoader = () => (
+	<div className='flex items-center justify-center min-h-[60vh]'>
+		<Spin size='large' tip='Загрузка страницы...' />
+	</div>
+)
+
 export const AppRouter = () => {
 	return (
-		<Routes>
+		<Suspense fallback={<PageLoader />}>
+			<Routes>
 			{/* Guest routes - только для неавторизованных пользователей */}
 			<Route
 				path='/login'
@@ -42,10 +52,8 @@ export const AppRouter = () => {
 					</GuestRoute>
 				}
 			/>
-
 			{/* Главная страница (доступна всем, но показывает разный контент) */}
 			<Route path='/' element={<Main />} />
-
 			{/* Client routes - защищённые, требуют авторизации */}
 			<Route
 				path='/me'
@@ -103,7 +111,6 @@ export const AppRouter = () => {
 					</ProtectedRoute>
 				}
 			/>
-
 			{/* Trainer routes - защищённые, требуют роль TRAINER */}
 			<Route
 				path='/admin'
@@ -161,9 +168,25 @@ export const AppRouter = () => {
 					</ProtectedRoute>
 				}
 			/>
-
+			<Route
+				path='/admin/progress/:clientId/reports'
+				element={
+					<ProtectedRoute requiredRole='TRAINER'>
+						<AllReportsAdmin />
+					</ProtectedRoute>
+				}
+			/>
+			<Route
+				path='/admin/progress/:clientId/reports/:reportId'
+				element={
+					<ProtectedRoute requiredRole='TRAINER'>
+						<Report />
+					</ProtectedRoute>
+				}
+			/>
 			{/* Fallback */}
 			<Route path='*' element={<Navigate to='/' replace />} />
-		</Routes>
+			</Routes>
+		</Suspense>
 	)
 }

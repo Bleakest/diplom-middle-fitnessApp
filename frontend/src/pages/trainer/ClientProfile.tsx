@@ -11,7 +11,7 @@ import {
 } from '../../components'
 import { useAuth } from '../../store/hooks'
 import { useGetClientProfileQuery } from '../../store/api/trainer.api'
-import { ErrorState, UnauthorizedState } from '../../components/errors'
+import { ApiErrorState } from '../../components/errors'
 import { useGetProgressAnalyticsQuery } from '../../store/api/progress.api'
 import type { ProgressAnalyticsResponse } from '../../store/types/progress.types'
 import { transformAnalyticsToChartData } from '../../utils/progressChart'
@@ -46,7 +46,13 @@ export const ClientProfile = () => {
 	}
 
 	if (!isAuthenticated) {
-		return <UnauthorizedState />
+		return (
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={{ status: 401, data: { error: { message: 'Требуется авторизация', statusCode: 401 } } }}
+				/>
+			</div>
+		)
 	}
 
 	if (clientLoading) {
@@ -55,24 +61,21 @@ export const ClientProfile = () => {
 
 	if (clientError || !clientData) {
 		return (
-			<div className='page-container gradient-bg'>
-				<div className='page-card' style={{ maxWidth: '500px' }}>
-					<ErrorState
-						title='Ошибка загрузки'
-						message='Не удалось загрузить данные клиента'
-						onRetry={() => window.location.reload()}
-						showRetryButton={true}
-					/>
-				</div>
+			<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10'>
+				<ApiErrorState
+					error={clientError}
+					title='Ошибка загрузки'
+					message='Не удалось загрузить данные клиента'
+				/>
 			</div>
 		)
 	}
 
 	return (
-		<div className='page-container gradient-bg'>
-			<div className='page-card'>
-				<div className='section-header'>
-					<Title level={2} className='section-title'>
+		<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
+			<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[1200px]'>
+				<div className='text-center mb-8'>
+					<Title level={2} className='text-gray-800 font-semibold mb-4 pb-3 border-b-3 border-primary inline-block'>
 						Профиль клиента
 					</Title>
 				</div>
@@ -84,7 +87,7 @@ export const ClientProfile = () => {
 
 					<Col xs={24} lg={16}>
 						<div className='flex flex-col h-full gap-6'>
-							<Card className='card-hover flex-1 flex flex-col'>
+							<Card className='hover:shadow-lg transition-all duration-300 hover:-translate-y-1 flex-1 flex flex-col'>
 								{progressLoading ? (
 									<div className='flex justify-center py-8'>
 										<LoadingState />
@@ -95,11 +98,10 @@ export const ClientProfile = () => {
 											reports={clientData.lastProgress}
 											photo={clientData.client.photo}
 										/>
-										{/* Куда должна вести кнопка "Все отчеты"? */}
 										<div className='mt-4'>
 											<Button
 												type='primary'
-												onClick={() => navigate(`/me/progress/reports`)}
+												onClick={() => navigate(`/admin/progress/${clientId}/reports`)}
 												className='!rounded-lg'
 											>
 												Все отчеты
@@ -114,15 +116,15 @@ export const ClientProfile = () => {
 					</Col>
 				</Row>
 
-				<Card className='card-hover !mb-8'>
-					<Title level={4} className='section-title !text-lg !mb-6'>
+				<Card className='hover:shadow-lg transition-all duration-300 hover:-translate-y-1 !mb-8'>
+					<Title level={4} className='text-gray-800 font-semibold text-lg mb-6 pb-3 border-b-3 border-primary inline-block'>
 						График прогресса
 					</Title>
 					<ProgressChart data={progressData} metrics={PROGRESS_METRICS} />
 				</Card>
 
 				<Card>
-					<Title level={4} className='section-title !text-lg !mb-6'>
+					<Title level={4} className='text-gray-800 font-semibold text-lg mb-6 pb-3 border-b-3 border-primary inline-block'>
 						Комментарии
 					</Title>
 					<CommentsSection

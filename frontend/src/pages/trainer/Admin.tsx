@@ -23,6 +23,7 @@ import {
 import { useGetMeQuery } from '../../store/api/user.api'
 import { userApi } from '../../store/api/user.api'
 import { toggleSidebar } from '../../store/slices/ui.slice'
+import { useThemeClasses } from '../../store/hooks'
 
 const { Title, Text } = Typography
 const { Content, Sider } = Layout
@@ -32,6 +33,7 @@ export const Admin: React.FC = () => {
 	const [acceptingId, setAcceptingId] = useState<string | null>(null)
 	const [rejectingId, setRejectingId] = useState<string | null>(null)
 	const [activeTab, setActiveTab] = useState('overview')
+	const classes = useThemeClasses()
 
 	// текущий пользователь (для проверки загрузки)
 	const { data: meData, isLoading: isLoadingMe } = useGetMeQuery()
@@ -298,15 +300,13 @@ export const Admin: React.FC = () => {
 	]
 
 	return (
-		// <div className='gradient-bg min-h-screen'>
-			<Layout className='admin-layout bg-transparent'>
+			<Layout className={`min-h-screen overflow-hidden bg-transparent`}>
 				<Sider
 					width={sidebarCollapsed ? 80 : 300}
 					collapsed={sidebarCollapsed}
-					className='admin-sidebar'
-					theme='light'
+					className={`${classes.border} border-r  shadow-md h-screen overflow-y-auto`}
 				>
-					<div className='p-4 border-b border-gray-200'>
+					<div className={`p-4 border-b ${classes.border}`}>
 						<Button
 							type='text'
 							icon={<MenuOutlined style={{ fontSize: 18 }} />}
@@ -318,18 +318,18 @@ export const Admin: React.FC = () => {
 					</div>
 
 					{!sidebarCollapsed && (
-						<div className='p-4'>
+						<div className={`p-4`}>
 							<TrainerSidebar clients={sidebarClients} />
 						</div>
 					)}
 				</Sider>
 
-				<Content className='admin-content'>
-					<div className='admin-page-card'>
+				<Content className='h-screen overflow-y-auto bg-transparent! p-0!'>
+					<div className='bg-light p-10 shadow-xl w-full min-h-full'>
 						{/* Header */}
 						<div className='flex items-center justify-between mb-6'>
-							<div className='section-header mb-0! text-left!'>
-								<Title level={2} className='section-title mb-0!'>
+							<div className='text-left'>
+								<Title level={2} className={`${classes.title} font-semibold mb-0 pb-3 border-b-3 border-primary inline-block`}>
 									🏢 Панель тренера
 								</Title>
 								<Text type='secondary' className='block mt-1'>
@@ -356,6 +356,5 @@ export const Admin: React.FC = () => {
 					</div>
 				</Content>
 			</Layout>
-		// </div>
 	)
 }

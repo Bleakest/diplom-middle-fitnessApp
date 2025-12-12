@@ -1,22 +1,11 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { createBaseQueryWithReauth } from './baseQuery'
 import { API_ENDPOINTS } from '../../config/api.config'
 import type {
 	CommentsResponse,
 	Comment,
 	ProgressAnalyticsResponse,
 } from '../types/progress.types'
-
-// Комментарий тренера к отчёту
-export interface TrainerComment {
-	id: string
-	text: string
-	createdAt: string
-	trainer: {
-		id: string
-		name: string
-		photo?: string
-	}
-}
 
 export interface ProgressReport {
 	id: string
@@ -31,7 +20,7 @@ export interface ProgressReport {
 	photoFront?: string
 	photoSide?: string
 	photoBack?: string
-	comments?: TrainerComment[]
+	comments?: Comment[]
 	createdAt: string
 	updatedAt: string
 }
@@ -74,27 +63,7 @@ export interface CreateProgressResponse {
 
 export const progressApi = createApi({
 	reducerPath: 'progressApi',
-	baseQuery: fetchBaseQuery({
-		baseUrl: API_ENDPOINTS.base,
-		credentials: 'include',
-		prepareHeaders: (headers, { endpoint }) => {
-			const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-			if (token) {
-				headers.set('authorization', `Bearer ${token}`)
-			}
-
-			// Content-Type устанавливаем ТОЛЬКО для мутаций (POST/PUT/PATCH)
-			// НЕ устанавливаем для GET запросов и для мутаций с файлами
-			if (endpoint === 'addProgressReport') {
-				// Для FormData не устанавливаем Content-Type - браузер сам добавит с boundary
-				return headers
-			}
-
-			// Для остальных мутаций (не GET) устанавливаем JSON
-			// GET запросы автоматически не получат этот header
-			return headers
-		},
-	}),
+	baseQuery: createBaseQueryWithReauth(API_ENDPOINTS.base),
 	tagTypes: ['Progress'],
 	endpoints: (builder) => ({
 		// Получение всех отчетов прогресса для графика
@@ -121,9 +90,47 @@ export const progressApi = createApi({
 			transformResponse: (response: ProgressReportsResponse) => response.data,
 		}),
 
+		// Получение всех отчетов для тренера по конкретному клиенту с пагинацией и фильтрацией по дате
+		getTrainerClientReports: builder.query<
+			ProgressReportsResponse,
+			{
+				clientId: string // обязательно!
+				page?: number
+				limit?: number
+				startDate?: string // формат: 'DD/MM/YYYY'
+				endDate?: string
+			}
+		>({
+			query: ({ clientId, page = 1, limit = 5, startDate, endDate }) => {
+				const params = new URLSearchParams()
+				params.append('clientId', clientId)
+				params.append('page', page.toString())
+				params.append('limit', limit.toString())
+
+				if (startDate) params.append('startDate', startDate)
+				if (endDate) params.append('endDate', endDate)
+
+				return `/progress?${params.toString()}`
+			},
+			providesTags: ['Progress'],
+		}),
+
 		// Получение конкретного отчета по ID
 		getProgressReport: builder.query<ProgressReport, string>({
 			query: (id) => `/progress/${id}`,
+			providesTags: ['Progress'],
+			transformResponse: (response: ProgressReportResponse) => response.progress,
+		}),
+
+		// Получение конкретного отчета по ID для тренера с указанием clientId
+		getTrainerProgressReport: builder.query<
+			ProgressReport,
+			{ reportId: string; clientId: string }
+		>({
+			query: ({ reportId, clientId }) => ({
+				url: `/progress/${reportId}`,
+				params: { clientId }, // → /progress/123?clientId=abc
+			}),
 			providesTags: ['Progress'],
 			transformResponse: (response: ProgressReportResponse) => response.progress,
 		}),
@@ -188,7 +195,9 @@ export const progressApi = createApi({
 export const {
 	useGetProgressChartDataQuery,
 	useGetProgressReportsQuery,
+	useGetTrainerClientReportsQuery,
 	useGetProgressReportQuery,
+	useGetTrainerProgressReportQuery,
 	useAddProgressReportMutation,
 	useGetLatestProgressQuery,
 	useGetProgressAnalyticsQuery,

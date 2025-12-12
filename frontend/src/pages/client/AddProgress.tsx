@@ -111,8 +111,10 @@ export const AddProgress = () => {
 
 			message.success('Отчёт о прогрессе успешно добавлен!')
 			navigate('/me/progress')
-		} catch (error: any) {
-			console.error('Failed to add progress:', error)
+		} catch (err) {
+			console.error('Не удалось добавить прогресс:', err)
+
+			const error = err as { data?: { message?: string }; status?: number }
 
 			if (error.data?.message) {
 				message.error(error.data.message)
@@ -137,16 +139,14 @@ export const AddProgress = () => {
 	}
 
 	return (
-		<div className='page-container gradient-bg'>
-			<div className='page-card' style={{ maxWidth: '700px' }}>
-				<Card className='!border-gray-200'>
-					<div className='section-header mb-6'>
-						<Title level={2} className='section-title !mb-1'>
+		<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
+			<div className='bg-light rounded-2xl p-10 shadow-xl border border-gray-200 w-full max-w-[700px]'>
+				<Card className='border-gray-200!'>
+					<div className='text-center mb-6'>
+						<Title level={2} className='text-gray-800 font-semibold mb-1 pb-3 border-b-3 border-primary inline-block'>
 							📊 Добавить прогресс
 						</Title>
-						<Text type='secondary'>
-							Заполните данные о ваших измерениях
-						</Text>
+						<Text type='secondary'>Заполните данные о ваших измерениях</Text>
 					</div>
 
 					<Form
@@ -266,7 +266,7 @@ export const AddProgress = () => {
 						{/* Фото - опциональные */}
 						<div className='grid grid-cols-3 gap-4 mb-6'>
 							{photoFields.map((photoType, index) => (
-								<div key={photoType} className='upload-area'>
+								<div key={photoType} className='border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer transition-all hover:border-primary hover:bg-gray-50'>
 									{photoPreviews[photoType] ? (
 										<div className='photo-preview-container'>
 											<img
@@ -319,13 +319,13 @@ export const AddProgress = () => {
 							))}
 						</div>
 
-						<Form.Item className='!mb-0'>
+						<Form.Item className='mb-0!'>
 							<Button
 								type='primary'
 								htmlType='submit'
 								block
 								loading={isLoading}
-								className='!h-12 !rounded-lg !text-base !font-semibold'
+								className='h-12! rounded-lg! text-base! font-semibold!'
 							>
 								Добавить замеры
 							</Button>

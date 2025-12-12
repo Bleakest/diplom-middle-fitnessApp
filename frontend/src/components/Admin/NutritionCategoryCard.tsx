@@ -50,13 +50,13 @@ export const NutritionCategoryCard = ({
 	const handleDeleteClick = async (e: React.MouseEvent) => {
 		e.stopPropagation()
 		e.preventDefault()
-		console.log('delete')
 		try {
 			await deleteCategory(category.id).unwrap()
 			message.success('Категория удалена')
-		} catch (error: any) {
+		} catch (error) {
 			console.error('Ошибка при удалении категории:', error)
-			message.error(error?.data?.message || 'Ошибка при удалении категории')
+			const err = error as { data?: { message?: string } }
+			message.error(err?.data?.message || 'Ошибка при удалении категории')
 		}
 	}
 
@@ -67,8 +67,8 @@ export const NutritionCategoryCard = ({
 	return (
 		<Card
 			hoverable
-			className={`nutrition-category-card border-muted hover:shadow-lg transition-all duration-300 background-light relative ${
-				openedCategoryId === category.id ? 'expanded' : ''
+			className={`border-muted hover:shadow-lg transition-all duration-300 bg-light relative min-h-[120px] ${
+				openedCategoryId === category.id ? 'min-h-[300px]' : ''
 			}`}
 			onClick={handleCardClick}
 		>
@@ -92,7 +92,7 @@ export const NutritionCategoryCard = ({
 					<div className='flex justify-between items-center'>
 						<div className='flex items-center gap-2'>
 							<span className='text-lg'>{getCategoryIcon(category.id)}</span>
-							<span className='text-custom hover-info-custom cursor-pointer'>
+							<span className='text-gray-800 hover:text-blue-500 cursor-pointer transition-colors'>
 								{category.name}
 							</span>
 						</div>

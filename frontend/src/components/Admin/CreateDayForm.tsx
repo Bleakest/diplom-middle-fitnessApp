@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Form, Input, Button, Card, Space, Select } from 'antd'
+import { Form, Input, Button, Card, Select } from 'antd'
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons'
 import type { NutritionMeal, NutritionDay, MealType } from '../../types/nutritions'
 import { mealTypes } from '../../constants/mealTypes'
@@ -38,11 +38,10 @@ export const CreateDayForm = ({
 				name: 'Завтрак',
 				mealOrder: 1,
 				items: [''],
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			}
-			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setMeals([defaultMeal])
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		}
+		setMeals([defaultMeal])
 		}
 	}, [day])
 
@@ -243,13 +242,15 @@ export const CreateDayForm = ({
 				Добавить прием пищи
 			</Button>
 
-			<Form.Item className='mt-6 mb-0'>
-				<Space>
-					<Button onClick={onCancel}>Отмена</Button>
-					<Button type='primary' htmlType='submit'>
+			<Form.Item className='mt-8 mb-4 pt-6 pb-2 border-t border-gray-200'>
+				<div className='flex justify-end gap-3'>
+					<Button onClick={onCancel} size='large'>
+						Отмена
+					</Button>
+					<Button type='primary' htmlType='submit' size='large'>
 						{day ? 'Сохранить изменения' : 'Создать день'}
 					</Button>
-				</Space>
+				</div>
 			</Form.Item>
 		</Form>
 	)
