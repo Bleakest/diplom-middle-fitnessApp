@@ -49,6 +49,11 @@ app.register(fastifyCookie, {
 	},
 })
 
+// Health check endpoint для Docker healthcheck и мониторинга
+app.get('/health', async (request, reply) => {
+	return reply.send({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
 app.register(
 	async (instance) => {
 		instance.register(authRoutes, { prefix: '/auth' })
