@@ -90,6 +90,20 @@ export default async function progressRoutes(app: FastifyInstance) {
 			// Создаём новый отчёт о прогрессе (фото опциональны)
 			const progress = await createProgress(req.user.id, validatedData, filesMap)
 
+			// Отправляем уведомление тренеру о новом отчете
+			const { getTrainerForClient } = await import('../controllers/trainer.js')
+			const { createNotification } = await import('../services/notification.service.js')
+
+			const trainerId = await getTrainerForClient(req.user.id)
+			if (trainerId && app.io) {
+				await createNotification(
+					trainerId,
+					'REPORT',
+					`Ваш клиент отправил новый отчет о прогрессе`,
+					app.io,
+				)
+			}
+
 			return reply.status(201).send({
 				message: 'Отчет о прогрессе успешно создан',
 				progress,
@@ -307,6 +321,25 @@ export default async function progressRoutes(app: FastifyInstance) {
 
 			// Создание комментария
 			const comment = await addComment(id, req.user.id, validation.data)
+
+			// Отправляем уведомление клиенту о новом комментарии
+			const { createNotification } = await import('../services/notification.service.js')
+			const { prisma } = await import('../prisma.js')
+
+			// Получаем ID клиента из отчета о прогрессе
+			const progress = await prisma.progress.findUnique({
+				where: { id },
+				select: { userId: true },
+			})
+
+			if (progress && app.io) {
+				await createNotification(
+					progress.userId,
+					'COMMENT',
+					`Тренер добавил комментарий к вашему отчету о прогрессе`,
+					app.io,
+				)
+			}
 
 			return reply.status(201).send({
 				message: 'Комментарий успешно добавлен',
