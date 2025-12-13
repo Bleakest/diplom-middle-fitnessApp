@@ -10,23 +10,31 @@ import { ApiError } from '../utils/ApiError.js'
  * @returns Уведомления с метаданными пагинации и счетчиком непрочитанных
  */
 export async function getNotifications(userId: string, query: GetNotificationsQueryDTO) {
-	const { page, limit } = query
+	console.log('getNotifications called for userId:', userId, 'query:', query)
+	const { page, limit, isRead } = query
 
 	// Вычисляем offset для пагинации
 	const skip = (page - 1) * limit
 	const take = limit
 
+	// Формируем where условие
+	const whereCondition: any = { userId }
+	if (isRead !== undefined) {
+		whereCondition.isRead = isRead
+	}
+
 	// Получаем уведомления пользователя
 	const notifications = await prisma.notification.findMany({
-		where: { userId },
+		where: whereCondition,
 		orderBy: { createdAt: 'desc' }, // Новые уведомления первыми
 		skip,
 		take,
 	})
+	console.log('Found notifications:', notifications.length, 'total:', notifications)
 
 	// Получаем общее количество уведомлений
 	const total = await prisma.notification.count({
-		where: { userId },
+		where: whereCondition,
 	})
 
 	// Получаем количество непрочитанных уведомлений
@@ -82,4 +90,21 @@ export async function markAsRead(userId: string, notificationId: string) {
 	})
 
 	return updatedNotification
+}
+
+/**
+ * Отметка всех уведомлений пользователя как прочитанные
+ * @param userId - ID пользователя
+ * @returns Количество обновленных уведомлений
+ */
+export async function markAllAsRead(userId: string) {
+	const result = await prisma.notification.updateMany({
+		where: {
+			userId,
+			isRead: false,
+		},
+		data: { isRead: true },
+	})
+
+	return result.count
 }

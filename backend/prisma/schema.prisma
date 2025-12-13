@@ -25,6 +25,7 @@ enum NotificationType {
   REPORT
   COMMENT
   PLAN
+  MESSAGE
 }
 
 model User {

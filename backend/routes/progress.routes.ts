@@ -90,12 +90,9 @@ export default async function progressRoutes(app: FastifyInstance) {
 			// Создаём новый отчёт о прогрессе (фото опциональны)
 			const progress = await createProgress(req.user.id, validatedData, filesMap)
 
-			// Отправляем уведомление тренеру о новом отчете
-			const { getTrainerForClient } = await import('../controllers/trainer.js')
-			const { createNotification } = await import('../services/notification.service.js')
-
 			const trainerId = await getTrainerForClient(req.user.id)
 			if (trainerId && app.io) {
+				console.log('Creating notification for trainerId:', trainerId)
 				await createNotification(
 					trainerId,
 					'REPORT',

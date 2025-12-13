@@ -34,6 +34,14 @@ export const GetNotificationsQuerySchema = z.object({
 				.min(MIN_LIMIT, `Лимит должен быть не менее ${MIN_LIMIT}`)
 				.max(MAX_LIMIT, `Лимит не может превышать ${MAX_LIMIT}`),
 		),
+	isRead: z
+		.string()
+		.optional()
+		.transform((val) => {
+			if (val === 'true') return true
+			if (val === 'false') return false
+			return undefined
+		}),
 })
 
 export type GetNotificationsQueryDTO = z.infer<typeof GetNotificationsQuerySchema>
