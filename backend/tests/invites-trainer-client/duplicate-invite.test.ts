@@ -1,13 +1,18 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { createTrainer, createClient, loginUser, prisma } from '../helpers.js'
-import { buildApp } from '../../app.js'
+import {
+	createTrainer,
+	createClient,
+	loginUser,
+	prisma,
+	createTestApp,
+} from '../helpers.js'
 import { FastifyInstance } from 'fastify'
 
 describe('Приглашение: Дубликаты', () => {
 	let app: FastifyInstance
 
 	beforeEach(async () => {
-		app = await buildApp()
+		app = await createTestApp()
 		await app.ready()
 	})
 

@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
-import bcrypt from 'bcrypt'
+import { hash } from 'bcryptjs'
 
-export const prisma = new PrismaClient()
-
-console.log('DATABASE_URL:', process.env.DATABASE_URL)
+import { prisma } from '../prisma.js'
 
 interface LoginResponse {
 	user: {
@@ -24,7 +22,7 @@ export async function createTrainer(suffix: string = '') {
 	const timestamp = Date.now() + Math.random()
 	const email = `trainer-${timestamp}${suffix}@test.com`
 
-	const hashedPassword = await bcrypt.hash('Test123!@#', 10)
+	const hashedPassword = await hash('Test123!@#', 10)
 
 	const trainer = await prisma.user.create({
 		data: {
@@ -48,7 +46,7 @@ export async function createClient(suffix: string = '') {
 	const timestamp = Date.now() + Math.random()
 	const email = `client-${timestamp}${suffix}@test.com`
 
-	const hashedPassword = await bcrypt.hash('Test123!@#', 10)
+	const hashedPassword = await hash('Test123!@#', 10)
 
 	const client = await prisma.user.create({
 		data: {
@@ -116,3 +114,24 @@ export async function loginUser(
 		cookies: refreshTokenCookie,
 	}
 }
+
+/**
+ * Создание тестового приложения с моками для внешних зависимостей
+ */
+export async function createTestApp() {
+	const { buildApp } = await import('../app.js')
+	const app = await buildApp()
+
+	// Мок Socket.IO для тестов (чтобы уведомления не падали)
+	app.io = {
+		to: (room: string) => ({
+			emit: (event: string, data: any) => {
+				// Ничего не делаем в тестах
+			},
+		}),
+	} as any
+
+	return app
+}
+
+export { prisma }

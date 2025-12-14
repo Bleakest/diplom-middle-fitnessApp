@@ -1,26 +1,34 @@
-import { beforeAll, afterAll, beforeEach } from 'vitest'
-import { prisma } from './helpers.js' // 👈 Используй prisma из helpers
+import { beforeEach } from 'vitest'
+import { prisma } from './helpers.js' // Используем prisma из helpers
+import { execSync } from 'child_process'
+import { Prisma } from '@prisma/client'
 
-beforeAll(async () => {
-	console.log('🧪 Test database connected')
-})
+interface Delegate {
+	deleteMany: () => Prisma.PrismaPromise<Prisma.BatchPayload>
+}
 
 beforeEach(async () => {
-	// Очистка данных перед каждым тестом (в правильном порядке!)
-	await prisma.message.deleteMany()
-	await prisma.chat.deleteMany()
-	await prisma.clientNutritionPlan.deleteMany()
-	await prisma.nutritionMeal.deleteMany()
-	await prisma.nutritionDay.deleteMany()
-	await prisma.nutritionSubcategory.deleteMany()
-	await prisma.nutritionCategory.deleteMany()
-	await prisma.comment.deleteMany()
-	await prisma.progress.deleteMany()
-	await prisma.trainerClient.deleteMany()
-	await prisma.refreshToken.deleteMany()
-	await prisma.user.deleteMany()
-})
+	// Очистка данных перед каждым тестом
+	const tables: { name: string; delegate: Delegate }[] = [
+		{ name: 'user', delegate: prisma.user },
+		{ name: 'refreshToken', delegate: prisma.refreshToken },
+		{ name: 'trainerClient', delegate: prisma.trainerClient },
+		{ name: 'progress', delegate: prisma.progress },
+		{ name: 'comment', delegate: prisma.comment },
+		{ name: 'chat', delegate: prisma.chat },
+		{ name: 'clientNutritionPlan', delegate: prisma.clientNutritionPlan },
+		{ name: 'nutritionMeal', delegate: prisma.nutritionMeal },
+		{ name: 'nutritionDay', delegate: prisma.nutritionDay },
+		{ name: 'nutritionSubcategory', delegate: prisma.nutritionSubcategory },
+		{ name: 'nutritionCategory', delegate: prisma.nutritionCategory },
+		{ name: 'message', delegate: prisma.message },
+	]
 
-afterAll(async () => {
-	await prisma.$disconnect()
+	for (const { name, delegate } of tables) {
+		try {
+			await delegate.deleteMany()
+		} catch (error) {
+			console.warn(`Таблица ${name} может не существовать:`, error)
+		}
+	}
 })
