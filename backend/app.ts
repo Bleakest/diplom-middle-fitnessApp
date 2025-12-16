@@ -3,6 +3,8 @@ import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import path from 'path'
+import sensible from '@fastify/sensible'
+import { prisma } from 'prisma.js'
 
 import { errorHandler } from './middleware/globalErrorHandler.js'
 
@@ -19,6 +21,10 @@ export async function buildApp(): Promise<FastifyInstance> {
 	const app = Fastify()
 
 	errorHandler(app)
+
+	app.decorate('prisma', prisma)
+
+	await app.register(sensible)
 
 	// Разрешаем пустое тело для application/json
 	app.addContentTypeParser(
