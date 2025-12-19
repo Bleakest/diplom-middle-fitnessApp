@@ -13,6 +13,7 @@ import {
 	Row,
 	Col,
 	Spin,
+	message,
 } from 'antd'
 import {
 	UserOutlined,
@@ -81,7 +82,10 @@ export const AllClientsGrid: React.FC<AllClientsGridProps> = () => {
 		try {
 			await toggleStarMutation({ clientId }).unwrap()
 		} catch (error) {
-			console.error('Ошибка переключения избранного:', error)
+			message.error('Не удалось обновить избранное. Попробуйте позже.')
+			if (import.meta.env.DEV) {
+				console.error('Ошибка переключения избранного:', error)
+			}
 		}
 	}
 

@@ -159,7 +159,9 @@ export const trainerApi = createApi({
 				const clients = Array.isArray(resp) ? resp : resp?.clients || []
 
 				if (!Array.isArray(clients)) {
-					console.error('Unexpected clients format:', clients)
+					if (import.meta.env.DEV) {
+						console.error('Unexpected clients format:', clients)
+					}
 					return []
 				}
 
