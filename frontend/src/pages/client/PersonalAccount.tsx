@@ -328,6 +328,17 @@ export const PersonalAccount = () => {
 	const weightDiff =
 		firstWeight && lastWeight ? (lastWeight - firstWeight).toFixed(1) : null
 
+	// Формируем корректный URL для фото тренера (поддерживаем полные URL, data: и относительные пути)
+	const trainerPhotoUrl = useMemo(() => {
+		const p = user?.trainer?.photo
+		if (!p) return null
+		if (p.startsWith('http') || p.startsWith('data:')) return p
+		// API_BASE_URL может оканчиваться или не оканчиваться слэшем — нормализуем
+		const base = API_BASE_URL?.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL
+		const path = p.startsWith('/') ? p : `/${p}`
+		return `${base}${path}`
+	}, [user?.trainer?.photo])
+
 	return (
 		<div className='gradient-bg min-h-[calc(100vh-4rem)] p-10 flex justify-center items-start'>
 			<div
@@ -566,14 +577,14 @@ export const PersonalAccount = () => {
 											: 'bg-gray-200 border-gray-300'
 									}`}
 									style={{
-										backgroundImage: user.trainer.photo
-											? `url(${API_BASE_URL}${user.trainer.photo})`
+										backgroundImage: trainerPhotoUrl
+											? `url(${trainerPhotoUrl})`
 											: undefined,
 										backgroundSize: 'cover',
 										backgroundPosition: 'center',
 									}}
 								>
-									{!user.trainer.photo && (
+									{!trainerPhotoUrl && (
 										<UserOutlined
 											style={{ fontSize: '32px', color: isDark ? '#64748b' : '#9ca3af' }}
 										/>
