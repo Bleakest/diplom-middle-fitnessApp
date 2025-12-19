@@ -27,15 +27,18 @@ interface TrainerFormValues {
 	name: string
 	age: number
 	phone?: string
+	email?: string
 	telegram?: string
 	whatsapp?: string
 	instagram?: string
 	bio?: string
 }
+
 const schema = z.object({
 	name: z.string().min(2, 'Минимум 2 символа'),
 	age: z.number().min(18, 'Минимальный возраст 18'),
-	phone: z.string().min(10, 'Минимум 10 цифр'),
+	phone: z.string().min(10, 'Минимум 10 цифр').optional(),
+	email: z.string().email('Введите корректный email').optional(),
 	telegram: z.string().optional(),
 	whatsapp: z.string().optional(),
 	instagram: z.string().optional(),
@@ -62,11 +65,12 @@ export const TrainerInfo: React.FC = () => {
 			? {
 					name: trainer.name,
 					age: trainer.age,
-					phone: trainer.phone,
-					telegram: trainer.telegram,
-					whatsapp: trainer.whatsapp,
-					instagram: trainer.instagram,
-					bio: trainer.bio,
+					phone: trainer.phone ?? undefined,
+					email: trainer.email ?? undefined,
+					telegram: trainer.telegram ?? undefined,
+					whatsapp: trainer.whatsapp ?? undefined,
+					instagram: trainer.instagram ?? undefined,
+					bio: trainer.bio ?? undefined,
 			  }
 			: {}
 
@@ -106,11 +110,18 @@ export const TrainerInfo: React.FC = () => {
 			const formData = new FormData()
 			formData.append('name', values.name)
 			formData.append('age', values.age.toString())
-			if (values.phone) formData.append('phone', values.phone)
-			if (values.telegram) formData.append('telegram', values.telegram)
-			if (values.whatsapp) formData.append('whatsapp', values.whatsapp)
-			if (values.instagram) formData.append('instagram', values.instagram)
-			if (values.bio) formData.append('bio', values.bio)
+
+			const appendIfString = (key: string, val?: string) => {
+				const s = typeof val === 'string' ? val.trim() : ''
+				if (s) formData.append(key, s)
+			}
+
+			appendIfString('phone', values.phone)
+			appendIfString('telegram', values.telegram)
+			appendIfString('whatsapp', values.whatsapp)
+			appendIfString('instagram', values.instagram)
+			appendIfString('bio', values.bio)
+			appendIfString('email', values.email)
 
 			if (newPhotoFile) {
 				formData.append('photo', newPhotoFile)
@@ -200,6 +211,10 @@ export const TrainerInfo: React.FC = () => {
 								<Input className='rounded-md bg-(--bg-light) shadow-sm' />
 							</Form.Item>
 
+							<Form.Item label='Email' name='email' rules={[rule]}>
+								<Input className='rounded-md bg-(--bg-light) shadow-sm' />
+							</Form.Item>
+
 							<Form.Item label='Telegram' name='telegram'>
 								<Input className='rounded-md bg-(--bg-light) shadow-sm' />
 							</Form.Item>
@@ -244,7 +259,12 @@ export const TrainerInfo: React.FC = () => {
 							</div>
 							<div className='text-sm mb-1'>
 								<span className='text-muted'>Телефон:</span>{' '}
-								<span className='font-mono'>{trainer.phone}</span>
+								<span className='font-mono'>{trainer.phone ?? 'не указан'}</span>
+							</div>
+
+							<div className='text-sm mb-1'>
+								<span className='text-muted'>Email:</span>{' '}
+								<span className='font-medium'>{trainer.email ?? 'не указан'}</span>
 							</div>
 							<div className='text-sm mb-1'>
 								<span className='text-muted'>Telegram:</span>{' '}
