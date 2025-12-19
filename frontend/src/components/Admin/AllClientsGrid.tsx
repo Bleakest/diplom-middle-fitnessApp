@@ -34,8 +34,8 @@ import {
 	useGetAllClientsQuery,
 	useToggleClientStarMutation,
 } from '../../store/api/trainer.api'
-import type { AllSystemClient } from '../../store/api/trainer.api'
 import { useAppSelector } from '../../store/hooks'
+import type { AllSystemClient } from '../../store/types/trainer.types'
 
 const { Text, Title } = Typography
 
