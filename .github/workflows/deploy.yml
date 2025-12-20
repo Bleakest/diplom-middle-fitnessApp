@@ -12,6 +12,10 @@ on:
       - master
       - 'release/**'
       - 'release-*'
+  pull_request:
+    types: [closed]
+    branches:
+      - development
 
 jobs:
   deploy:

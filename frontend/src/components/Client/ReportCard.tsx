@@ -89,20 +89,27 @@ export const ReportCard: React.FC<ReportCardProps> = ({
 					</Space>
 				</div>
 
-							{shouldShowPhoto && (
-								<div className='shrink-0 md:ml-4' onClick={(e) => e.stopPropagation()}>
-									{/* Build image src safely: if photoFront already contains an absolute URL, use it as-is */}
-									
-									<img
-										src={imageSrc}
-										alt='Фото отчета'
-										className={`w-20 h-20 object-cover rounded-full border-2 ${
-											isDark ? 'border-slate-600' : 'border-gray-200'
-										}`}
-										onError={() => onPhotoError(report.id)}
-									/>
-								</div>
-							)}
+				{shouldShowPhoto ? (
+					<div className='shrink-0 md:ml-4' onClick={(e) => e.stopPropagation()}>
+						<img
+							src={imageSrc}
+							alt={`Фото отчёта ${formatDate(report.date)}`}
+							className={`w-20 h-20 object-cover rounded-full border-2 ${
+								isDark ? 'border-slate-600' : 'border-gray-200'
+							}`}
+							onError={() => onPhotoError(report.id)}
+						/>
+					</div>
+				) : (
+					<div
+						className={`w-20 h-20 shrink-0 md:ml-4 flex items-center justify-center rounded-full text-xl ${
+							isDark ? 'bg-slate-700 text-slate-200' : 'bg-gray-100 text-gray-500'
+						}`}
+						aria-hidden
+					>
+						<span>👤</span>
+					</div>
+				)}
 			</div>
 		</Card>
 	)
