@@ -45,7 +45,8 @@ export function Header() {
 	}, [unreadData?.unreadCount, dispatch])
 
 	const storedUser = useAppSelector((state) => state.auth.user)
-	const user = storedUser ?? meData?.user
+	// prefer fresh data from server when available (meData) to ensure latest photo is used
+	const user = meData?.user ?? storedUser
 	const isAuthenticated = !!token && !!user
 
 	// Получаем количество непрочитанных сообщений из Redux
@@ -298,7 +299,7 @@ export function Header() {
 							<div className='flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity'>
 								<Avatar
 									size={36}
-									src={getPhotoUrl(user.photo)}
+									src={getPhotoUrl(user?.photo) || undefined}
 									icon={<UserOutlined />}
 									style={{ border: '2px solid var(--primary)' }}
 								/>
